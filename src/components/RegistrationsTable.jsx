@@ -101,10 +101,6 @@ export default function RegistrationsTable() {
     setServices(serviceData || []);
   };
 
-
-
-  
-
   useEffect(() => {
     loadData();
   }, [currentPage]);
@@ -145,51 +141,18 @@ export default function RegistrationsTable() {
   });
 
   return (
-    <div>
-      <div className="flex flex-wrap gap-4 mb-6">
-        <Input
-          placeholder="Ism bo‘yicha filtr"
-          name="name"
-          value={filters.name}
-          onChange={handleFilterChange}
-        />
-        <Input
-          placeholder="Telefon"
-          name="phone"
-          value={filters.phone}
-          onChange={handleFilterChange}
-        />
-        <Input
-          placeholder="Xizmat"
-          name="service"
-          value={filters.service}
-          onChange={handleFilterChange}
-        />
-        <Select
-          value={filters.doctor}
-          onValueChange={(val) =>
-            setFilters((prev) => ({ ...prev, doctor: val }))
-          }
-        >
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Shifokor" />
-          </SelectTrigger>
-          <SelectContent>
-            {doctors.map((doctor) => (
-              <SelectItem key={doctor.id} value={doctor.full_name}>
-                {doctor.full_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="pb-5">
+      <div className="flex gap-4 mb-6 justify-end">
         <Input
           type="date"
           name="startDate"
+          className={"w-fit"}
           value={filters.startDate}
           onChange={handleFilterChange}
         />
         <Input
           type="date"
+          className={"w-fit"}
           name="endDate"
           value={filters.endDate}
           onChange={handleFilterChange}
@@ -197,19 +160,18 @@ export default function RegistrationsTable() {
         <Button variant="outline" onClick={handleClearFilters}>
           Filtrlarni tozalash
         </Button>
-      </div>
-
-      <div className="mb-2 text-sm text-muted-foreground">
-        <p>Umumiy zakazlar soni: {totalRegistrations}</p>
-        <p>Filtrlangan zakazlar: {filteredRegistrations.length}</p>
+        {/* <div className="mb-2 text-sm text-muted-foreground">
+          <p>Umumiy zakazlar soni: {totalRegistrations}</p>
+          <p>Filtrlangan zakazlar: {filteredRegistrations.length}</p>
+        </div> */}
       </div>
 
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Zakaz №</TableHead>
+            <TableHead>ID</TableHead>
+            <TableHead>ID</TableHead>
             <TableHead>Ism</TableHead>
-            <TableHead>Familiya</TableHead>
             <TableHead>Telefon</TableHead>
             <TableHead>Shifokor</TableHead>
             <TableHead>Xizmatlar</TableHead>
@@ -217,25 +179,85 @@ export default function RegistrationsTable() {
             <TableHead>Status</TableHead>
             <TableHead>Sana</TableHead>
           </TableRow>
+          <TableRow className={"!py-2"}>
+            <TableHead>№</TableHead>
+            <TableHead>Buyurtma ID</TableHead>
+            <TableHead>
+              <Input
+                placeholder="Ism Familiya"
+                name="name"
+                value={filters.name}
+                onChange={handleFilterChange}
+              />
+            </TableHead>
+            <TableHead>
+              <Input
+                placeholder="Telefon"
+                name="phone"
+                value={filters.phone}
+                onChange={handleFilterChange}
+              />
+            </TableHead>
+            <TableHead>
+              <Select
+                value={filters.doctor}
+                onValueChange={(val) =>
+                  setFilters((prev) => ({ ...prev, doctor: val }))
+                }
+              >
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Shifokor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {doctors.map((doctor) => (
+                    <SelectItem key={doctor.id} value={doctor.full_name}>
+                      {doctor.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </TableHead>
+            <TableHead>
+              <Input
+                placeholder="Xizmat"
+                name="service"
+                value={filters.service}
+                onChange={handleFilterChange}
+              />
+            </TableHead>
+            <TableHead>Summa</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Sana</TableHead>
+          </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredRegistrations.map((reg) => {
+          {filteredRegistrations.map((reg, i) => {
             const patient = patients.find((p) => p.id === reg.patient_id);
             const doctor = doctors.find((d) => d.id === reg.doctor_id);
             const service = services.find((s) => s.id === reg.service_id);
 
             return (
               <TableRow key={reg.id}>
+                <TableCell>{i + 1}</TableCell>
                 <TableCell>{reg.order_number}</TableCell>
-                <TableCell>{patient?.first_name}</TableCell>
-                <TableCell>{patient?.last_name}</TableCell>
+                <TableCell>
+                  {patient?.first_name} {patient?.last_name}
+                </TableCell>
                 <TableCell>{patient?.phone}</TableCell>
                 <TableCell>{doctor?.full_name}</TableCell>
                 <TableCell>{service?.name}</TableCell>
                 <TableCell>{reg.total_amount?.toLocaleString()} so‘m</TableCell>
                 <TableCell>{reg.status}</TableCell>
                 <TableCell>
-                  {new Date(reg.created_at).toLocaleDateString()}
+                  {new Date(
+                    new Date(reg.created_at).getTime() + 5 * 60 * 60 * 1000
+                  ).toLocaleString("uz-UZ", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </TableCell>
               </TableRow>
             );
@@ -252,9 +274,10 @@ export default function RegistrationsTable() {
         >
           Oldingi
         </Button>
-        <span>
+        <span className="flex gap-4">
           Sahifa: {currentPage} /{" "}
           {Math.ceil(totalRegistrations / registrationsPerPage)}
+          <p>Umumiy zakazlar soni: {filteredRegistrations.length}</p>
         </span>
         <Button
           variant="outline"
