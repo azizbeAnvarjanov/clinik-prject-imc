@@ -11,6 +11,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { createClient } from "@/utils/supabase/client";
@@ -21,21 +32,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Search } from "lucide-react";
+import { CopyX, Printer, Search } from "lucide-react";
+import LoaderComponent from "@/components/LoaderComponent";
+import PhoneInput from "@/components/PhoneInput";
 
 export default function RegisterPage() {
   const supabase = createClient();
+  const [loading, setLoading] = useState(false);
   const [services, setServices] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [orderNumber, setOrderNumber] = useState(0);
+  const [registerDate, setRegisterDate] = useState("");
 
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
     middle_name: "",
-    phone: "",
+    phone: "+998",
     birth_date: "",
     gender: "male",
     region: "Namangan",
@@ -67,19 +82,31 @@ export default function RegisterPage() {
     setTotal(Math.round(discounted));
   }, [selectedServices, formData.discount, services]);
 
-  useEffect(() => {
-    const fetchNavbat = async () => {
-      const doctor = doctors.find((d) => d.id === formData.doctor_id);
-      if (doctor) {
-        const { data, error } = await supabase
-          .from("today_doctor_stats")
-          .select("*")
-          .eq("doctor_name", doctor?.full_name);
-        setNavbat(data[0].patient_count);
+  const fetchNavbat = async (id) => {
+    setLoading(true);
+    const doctor = doctors.find((d) => d.id === id);
+    if (doctor) {
+      const { data, error } = await supabase
+        .from("today_doctor_stats")
+        .select("*")
+        .eq("doctor_id", id);
+
+      if (error) {
+        setLoading(false);
+        console.error("Supabase error:", error);
+        return;
       }
-    };
-    fetchNavbat();
-  }, [formData.doctor_id]);
+
+      if (data && data.length > 0) {
+        setNavbat(data[0].patient_count);
+        setLoading(false);
+      } else {
+        setLoading(false);
+        setNavbat(0); // yoki null, agar kerak bo‘lsa
+        console.warn("Doctor stats topilmadi:", doctor.full_name);
+      }
+    }
+  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -95,8 +122,10 @@ export default function RegisterPage() {
   };
 
   const handleSearch = async () => {
+    setLoading(true);
     if (!formData.phone) {
       toast.error("Telefon raqam kiriting");
+      setLoading(false);
       return;
     }
     const { data, error } = await supabase
@@ -108,8 +137,11 @@ export default function RegisterPage() {
     if (error || !data) {
       toast.error("Bu mijoz bazada mavjud emas");
       setExistingPatient(null);
+      setLoading(false);
     } else {
       setExistingPatient(data);
+      setLoading(false);
+
       setFormData((prev) => ({
         ...prev,
         ...data,
@@ -130,6 +162,8 @@ export default function RegisterPage() {
       toast.error("Majburiy maydonlarni to‘ldiring");
       return;
     }
+
+    setLoading(true);
 
     // Bemorni tekshirish yoki yaratish
     let patient = existingPatient;
@@ -152,6 +186,7 @@ export default function RegisterPage() {
 
       if (error || !data) {
         toast.error("Bemorni saqlashda xatolik");
+        setLoading(false);
         return;
       }
 
@@ -194,11 +229,13 @@ export default function RegisterPage() {
 
       if (regError || !registration) {
         toast.error(`Registratsiyada xatolik (${service?.name})`);
+        setLoading(false);
+
         return;
       }
     }
-
-    toast.success("Barcha xizmatlar uchun ro‘yxatdan o‘tkazildi!");
+    setLoading(false);
+    toast.success("Muvafaqiyatli ro'yhatdan o'tdi!");
   };
 
   const handleClear = () => {
@@ -220,39 +257,143 @@ export default function RegisterPage() {
     setTotal(0);
   };
 
+  const formatDate = (isoString) => {
+    const date = new Date(isoString);
+    const localTimeOffset = date.getTimezoneOffset() * 60000; // Offsetni millisekundga o‘girish
+    const localDate = new Date(date.getTime() - localTimeOffset);
+
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, "0");
+    const day = String(localDate.getDate()).padStart(2, "0");
+    const hours = String(localDate.getHours()).padStart(2, "0");
+    const minutes = String(localDate.getMinutes()).padStart(2, "0");
+    const seconds = String(localDate.getSeconds()).padStart(2, "0");
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+
+  const handlePrint = () => {
+    const printContent = document.getElementById("printableDiv");
+
+    if (!printContent) {
+      console.error("printableDiv topilmadi!");
+      return;
+    }
+
+    const printWindow = window.open("", "_blank");
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Chek</title>
+          <link rel="stylesheet" href="/your-global-styles.css"> 
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            @media print {
+              body * { visibility: hidden; }
+              #printableDiv, #printableDiv * { visibility: visible; }
+              #printableDiv { position: absolute; left: 0; top: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div id="printableDiv">
+            ${printContent.innerHTML}
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    };
+  };
+
+  const getSelectedServiceDetails = (selectedIds, allServices) => {
+    return selectedIds
+      .map((sel) => {
+        const id = typeof sel === "object" ? sel.id : sel;
+        return allServices.find((service) => service.id === id);
+      })
+      .filter(Boolean); // undefined bo‘lganlarni chiqarib tashlash
+  };
+
+  const selectedServiceDetails = getSelectedServiceDetails(
+    selectedServices,
+    services
+  );
+
+  console.log(selectedServiceDetails);
+
+  const handlePhoneNUmberChange = (e) => {
+    const { name, value } = e.target;
+
+    // Telefon uchun +998 avtomatik qo‘shish
+    if (name === "phone") {
+      let formatted = value;
+
+      // Agar +998 bilan boshlanmasa, boshiga qo‘shib qo‘yish
+      if (!formatted.startsWith("+998")) {
+        formatted = "+998" + formatted.replace(/^(\+998)?/, "");
+      }
+
+      // Maksimal 13 belgidan oshmasin: "+998" + 9 raqam
+      if (formatted.length > 13) {
+        formatted = formatted.slice(0, 13);
+      }
+
+      setFormData((prev) => ({ ...prev, [name]: formatted }));
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
     <div className="flex items-start">
+      {loading && (
+        <div className="absolute bg-white/50 dark:bg-black/70 backdrop-blur-sm grid place-items-center w-full h-screen left-0 top-0 z-50">
+          <LoaderComponent />
+        </div>
+      )}
       <div className="w-[60%] mx-auto space-y-4 p-4">
-        <h1 className="text-2xl font-bold">
-          Bemorni ro‘yxatdan o‘tkazish - {navbat + 1} - order_number - {orderNumber}
-        </h1>
-
         <div className="flex gap-2 items-end">
-          <div className="flex-1">
-            <Label>Telefon</Label>
-            <Input
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-            />
-          </div>
-          <Button onClick={handleSearch}>
+          <PhoneInput
+            value={formData.phone}
+            onChange={(val) => setFormData((prev) => ({ ...prev, phone: val }))}
+          />
+          <Button
+            disabled={loading}
+            className={"bg-[#013ca6] text-white hover:bg-[#013ca6]"}
+            onClick={handleSearch}
+          >
             <Search />
           </Button>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label>Ismi *</Label>
+            <Label>
+              Ismi <span className="text-red-500">*</span>
+            </Label>
             <Input
+              disabled={loading}
               name="first_name"
               value={formData.first_name}
               onChange={handleChange}
             />
           </div>
           <div>
-            <Label>Familiyasi *</Label>
+            <Label>
+              Familiyasi <span className="text-red-500">*</span>
+            </Label>
             <Input
+              disabled={loading}
               name="last_name"
               value={formData.last_name}
               onChange={handleChange}
@@ -261,14 +402,18 @@ export default function RegisterPage() {
           <div>
             <Label>Otasining ismi</Label>
             <Input
+              disabled={loading}
               name="middle_name"
               value={formData.middle_name}
               onChange={handleChange}
             />
           </div>
           <div>
-            <Label>Tug‘ilgan sana *</Label>
+            <Label>
+              Tug‘ilgan sana <span className="text-red-500">*</span>
+            </Label>
             <Input
+              disabled={loading}
               type="date"
               name="birth_date"
               value={formData.birth_date}
@@ -277,7 +422,9 @@ export default function RegisterPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Jinsi *</Label>
+              <Label>
+                Jinsi <span className="text-red-500">*</span>
+              </Label>
               <Select
                 value={formData.gender}
                 onValueChange={(val) =>
@@ -295,11 +442,14 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <Label>Shifokor *</Label>
+              <Label>
+                Shifokor <span className="text-red-500">*</span>
+              </Label>
               <Select
                 value={formData.doctor_id}
                 onValueChange={(val) => {
                   setFormData((prev) => ({ ...prev, doctor_id: val }));
+                  fetchNavbat(val);
                 }}
               >
                 <SelectTrigger className="w-full">
@@ -349,28 +499,30 @@ export default function RegisterPage() {
                 <SelectContent>
                   <SelectItem value="Norin">Norin</SelectItem>
                   <SelectItem value="Pop">Pop</SelectItem>
-                  <SelectItem value="Chortoq">Chortoq</SelectItem>
+                  <SelectItem value="Uchqo'rg'on">Uchqo'rg'on</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="col-span-2">
+          <div className="">
             <Label>Hudud</Label>
             <Input name="area" value={formData.area} onChange={handleChange} />
+          </div>
+          <div>
+            <div>
+              <Label>Chegirma (%)</Label>
+              <Input
+                type="number"
+                name="discount"
+                value={formData.discount}
+                onChange={handleChange}
+              />
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4 items-end">
-          <div>
-            <Label>Chegirma (%)</Label>
-            <Input
-              type="number"
-              name="discount"
-              value={formData.discount}
-              onChange={handleChange}
-            />
-          </div>
           <div>
             <Label>Umumiy narx (so‘m)</Label>
             <div className="text-lg font-semibold mt-2">
@@ -380,63 +532,62 @@ export default function RegisterPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button onClick={handleSubmit}>Ro‘yxatdan o‘tkazish</Button>
-          <Button variant="outline" onClick={handleClear}>
+          <Button
+            className="bg-[#013ca6] text-white hover:bg-[#013ca6]"
+            onClick={handleSubmit}
+          >
+            Ro‘yxatdan o‘tkazish
+          </Button>
+          <Button disabled={loading} variant="outline" onClick={handleClear}>
+            <CopyX />
             Tozalash
           </Button>
-          <Button variant="secondary" onClick={() => setShowCheckDialog(true)}>
+          <Button disabled={loading} variant="outline" onClick={handlePrint}>
+            <Printer />
             Check chiqarish
           </Button>
         </div>
-
-        {/* Check dialog */}
-        <Dialog open={showCheckDialog} onOpenChange={setShowCheckDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Check</DialogTitle>
-            </DialogHeader>
-            <div>
-              <p>
-                <strong>Ism, Familiya:</strong> {formData.first_name}{" "}
-                {formData.last_name}
-              </p>
-              <p>
-                <strong>Telefon:</strong> {formData.phone}
-              </p>
-              <p>
-                <strong>Xizmatlar:</strong>
-              </p>
-              <ul className="list-disc list-inside">
-                {services
-                  .filter((s) => selectedServices.includes(s.id))
-                  .map((s) => (
-                    <li key={s.id}>
-                      {s.name} - {s.price} so'm
-                    </li>
-                  ))}
-              </ul>
-              <p>
-                <strong>Chegirma:</strong> {formData.discount}%
-              </p>
-              <p>
-                <strong>To‘lanadigan summa:</strong> {total?.toLocaleString()}{" "}
-                so‘m
-              </p>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]">№</TableHead>
+              <TableHead>Xizmat nomi</TableHead>
+              <TableHead>Narxi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {selectedServiceDetails.map((item, i) => (
+              <TableRow key={i}>
+                <TableCell>{i + 1}</TableCell>
+                <TableCell>{item.name}</TableCell>
+                <TableCell>{item.price?.toLocaleString()} so'm</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={2}>Umumiy narx (so‘m)</TableCell>
+              <TableCell>{total?.toLocaleString()} so‘m</TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
       </div>
-      <div className="p-3 w-[40%]">
-        <div className="flex flex-col">
-          <Label>Xizmatlar *</Label>
-          <div>
+      <div className=" w-[40%] !max-h-[90vh] !min-h-[90vh]  overflow-auto relative">
+        <div className="sticky left-0 top-0 bg-white dark:bg-[#0a0a0a] px-3">
+          <Label>
+            Xizmatlar <span className="text-red-500">*</span>
+          </Label>
+          <div className="mb-3">
             <Input
               type="text"
+              disabled={loading}
               placeholder="Qidirish...."
               onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
             />
           </div>
-          <div className="flex flex-wrap flex-col">
+        </div>
+        <div className="flex flex-col px-3">
+          <div className="flex flex-wrap flex-col ">
             {services
               .filter((s) => s.name.toLowerCase().includes(searchTerm))
               .map((s) => (
@@ -445,6 +596,7 @@ export default function RegisterPage() {
                   className="flex items-center gap-2 cursor-pointer border-b p-2 hover:bg-muted"
                 >
                   <Checkbox
+                    disabled={loading}
                     checked={selectedServices.includes(s.id)}
                     onCheckedChange={() => handleCheckboxChange(s.id)}
                   />
@@ -456,6 +608,46 @@ export default function RegisterPage() {
               ))}
           </div>
         </div>
+      </div>
+      <div id="printableDiv" className="print-area  mx-auto hidden">
+        <div className="p-2 gap-2 items-center justify-items-center">
+          <div className="w-[100px] h-[100px] relative">
+            <img src={"/logo.png"} alt="" className="object-contain" />
+          </div>
+          <div className="text-sm font-bold text-center">
+            <p>Tel: 998 88 254 77 75</p>
+            <p>Namangan, Norin, Norinkapa MFY, Mustaqilliq 67-uy</p>
+          </div>
+        </div>
+        <div className="border-y border-dashed text-sm text-center py-2">
+          {registerDate && formatDate(registerDate)}
+          <p className="font-bold">
+            {formData.first_name} {formData.last_name}
+          </p>
+          <p className="font-bold">ID: {orderNumber}</p>
+          <p className="font-bold">Navbat: {navbat + 1}</p>
+          <p className="font-bold">{formData.phone}</p>
+        </div>
+        <div className="py-2">
+          <strong>Chegirma</strong>: {formData.discount}%
+          <div className="flex item-center justify-between font-bold">
+            <h1>Xizmatlar</h1>
+            <h1>Sum</h1>
+          </div>
+          {selectedServiceDetails.map((item, idx) => (
+            <div
+              className="border-b py-2 flex items-center justify-between"
+              key={idx}
+            >
+              <p>{item.name}</p>
+              <p>{item.price?.toLocaleString()} so'm</p>
+            </div>
+          ))}
+        </div>
+        <p className="">
+          <strong>Jami narx:</strong> {total?.toLocaleString()}
+          so‘m
+        </p>
       </div>
     </div>
   );

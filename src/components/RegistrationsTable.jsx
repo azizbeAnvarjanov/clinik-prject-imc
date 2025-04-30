@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import toast from "react-hot-toast";
+import formatUzPhoneNumber from "@/components/formatUzPhoneNumber";
 
 export default function RegistrationsTable() {
   const supabase = createClient();
@@ -243,7 +244,7 @@ export default function RegistrationsTable() {
                 <TableCell>
                   {patient?.first_name} {patient?.last_name}
                 </TableCell>
-                <TableCell>{patient?.phone}</TableCell>
+                <TableCell>{formatUzPhoneNumber(patient?.phone)}</TableCell>
                 <TableCell>{doctor?.full_name}</TableCell>
                 <TableCell>{service?.name}</TableCell>
                 <TableCell>{reg.total_amount?.toLocaleString()} so‘m</TableCell>
