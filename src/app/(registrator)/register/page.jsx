@@ -355,14 +355,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex items-start">
+    <div className="flex flex-col lg:flex-row items-start gap-4">
       {loading && (
-        <div className="absolute bg-white/50 dark:bg-black/70 backdrop-blur-sm grid place-items-center w-full h-screen left-0 top-0 z-50">
+        <div className="fixed bg-white/50 dark:bg-black/70 backdrop-blur-sm grid place-items-center w-full h-screen left-0 top-0 z-50">
           <LoaderComponent />
         </div>
       )}
-      <div className="w-[60%] mx-auto space-y-4 p-4">
-        <div className="flex gap-2 items-end">
+      <div className="w-full lg:w-[60%] mx-auto space-y-4 p-4">
+        <div className="flex gap-2 items-end flex-wrap">
           <PhoneInput
             value={formData.phone}
             onChange={(val) => setFormData((prev) => ({ ...prev, phone: val }))}
@@ -376,7 +376,7 @@ export default function RegisterPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label>
               Ismi <span className="text-red-500">*</span>
@@ -522,7 +522,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
           <div>
             <Label>Umumiy narx (so‘m)</Label>
             <div className="text-lg font-semibold mt-2">
@@ -531,7 +531,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             className="bg-[#013ca6] text-white hover:bg-[#013ca6]"
             onClick={handleSubmit}
@@ -572,8 +572,8 @@ export default function RegisterPage() {
           </TableFooter>
         </Table>
       </div>
-      <div className=" w-[40%] !max-h-[90vh] !min-h-[90vh]  overflow-auto relative">
-        <div className="sticky left-0 top-0 bg-white dark:bg-[#0a0a0a] px-3">
+      <div className="w-full lg:w-[40%] max-h-[90vh] min-h-[90vh] overflow-auto relative">
+        <div className="sticky left-0 top-0 bg-white dark:bg-[#0a0a0a] px-3 py-2 z-10">
           <Label>
             Xizmatlar <span className="text-red-500">*</span>
           </Label>
@@ -586,7 +586,7 @@ export default function RegisterPage() {
             />
           </div>
         </div>
-        <div className="flex flex-col px-3">
+        <div className="flex flex-col px-3 space-y-2">
           <div className="flex flex-wrap flex-col ">
             {services
               .filter((s) => s.name.toLowerCase().includes(searchTerm))
