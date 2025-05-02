@@ -149,6 +149,95 @@ export default function RegisterPage() {
     }
   };
 
+  // const handleSubmit = async () => {
+  //   if (
+  //     !formData.first_name ||
+  //     !formData.last_name ||
+  //     !formData.phone ||
+  //     !formData.birth_date ||
+  //     !formData.gender ||
+  //     selectedServices.length === 0 ||
+  //     !formData.doctor_id
+  //   ) {
+  //     toast.error("Majburiy maydonlarni to‘ldiring");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+
+  //   // Bemorni tekshirish yoki yaratish
+  //   let patient = existingPatient;
+  //   if (!patient) {
+  //     const { data, error } = await supabase
+  //       .from("patients")
+  //       .insert({
+  //         phone: formData.phone,
+  //         first_name: formData.first_name,
+  //         last_name: formData.last_name,
+  //         middle_name: formData.middle_name,
+  //         birth_date: formData.birth_date,
+  //         gender: formData.gender,
+  //         region: formData.region,
+  //         district: formData.district,
+  //         area: formData.area,
+  //       })
+  //       .select()
+  //       .single();
+
+  //     if (error || !data) {
+  //       toast.error("Bemorni saqlashda xatolik");
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     patient = data;
+  //   }
+
+  //   // Bitta umumiy order_number olish
+  //   const { data: lastReg } = await supabase
+  //     .from("registrations")
+  //     .select("order_number")
+  //     .order("order_number", { ascending: false })
+  //     .limit(1)
+  //     .single();
+
+  //   const orderNumber = (lastReg?.order_number || 0) + 1;
+
+  //   // Har bir xizmat uchun registratsiya qilish, lekin order_number bir xil bo‘lishi kerak
+  //   for (const service_id of selectedServices) {
+  //     const service = services.find((s) => s.id === service_id);
+  //     const originalPrice = service?.price || 0;
+  //     const discountedPrice = Math.round(
+  //       originalPrice * (1 - Number(formData.discount) / 100)
+  //     );
+
+  //     setOrderNumber(orderNumber);
+
+  //     const { data: registration, error: regError } = await supabase
+  //       .from("registrations")
+  //       .insert({
+  //         patient_id: patient.id,
+  //         doctor_id: formData.doctor_id,
+  //         total_amount: discountedPrice,
+  //         discount: Number(formData.discount),
+  //         status: "to'lanmagan",
+  //         order_number: orderNumber, // Hamma xizmatlarga bitta raqam
+  //         service_id: service_id,
+  //       })
+  //       .select()
+  //       .single();
+
+  //     if (regError || !registration) {
+  //       toast.error(`Registratsiyada xatolik (${service?.name})`);
+  //       setLoading(false);
+
+  //       return;
+  //     }
+  //   }
+  //   setLoading(false);
+  //   toast.success("Muvafaqiyatli ro'yhatdan o'tdi!");
+  // };
+
   const handleSubmit = async () => {
     if (
       !formData.first_name ||
@@ -165,7 +254,7 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    // Bemorni tekshirish yoki yaratish
+    // 1. Bemorni tekshirish yoki yaratish
     let patient = existingPatient;
     if (!patient) {
       const { data, error } = await supabase
@@ -193,7 +282,7 @@ export default function RegisterPage() {
       patient = data;
     }
 
-    // Bitta umumiy order_number olish
+    // 2. Yangi order_number aniqlash
     const { data: lastReg } = await supabase
       .from("registrations")
       .select("order_number")
@@ -202,38 +291,78 @@ export default function RegisterPage() {
       .single();
 
     const orderNumber = (lastReg?.order_number || 0) + 1;
+    setOrderNumber(orderNumber); // Agar kerak bo‘lsa, state uchun
 
-    // Har bir xizmat uchun registratsiya qilish, lekin order_number bir xil bo‘lishi kerak
+    // 3. Umumiy summa hisoblash
+    let totalAmount = 0;
+    const servicesToInsert = [];
+
     for (const service_id of selectedServices) {
-      const service = services.find((s) => s.id === service_id);
-      const originalPrice = service?.price || 0;
+      const service = services.find((s) => s.id === service_id); // <-- MUHIM
+
+      if (!service) {
+        toast.error(`Xizmat topilmadi (ID: ${service_id})`);
+        setLoading(false);
+        return;
+      }
+
+      console.log(service.id);
+
+      const originalPrice = service.price || 0;
       const discountedPrice = Math.round(
         originalPrice * (1 - Number(formData.discount) / 100)
       );
 
-      setOrderNumber(orderNumber);
+      totalAmount += discountedPrice;
 
-      const { data: registration, error: regError } = await supabase
-        .from("registrations")
-        .insert({
-          patient_id: patient.id,
-          doctor_id: formData.doctor_id,
-          total_amount: discountedPrice,
-          discount: Number(formData.discount),
-          status: "to'lanmagan",
-          order_number: orderNumber, // Hamma xizmatlarga bitta raqam
-          service_id: service_id,
-        })
-        .select()
-        .single();
-
-      if (regError || !registration) {
-        toast.error(`Registratsiyada xatolik (${service?.name})`);
-        setLoading(false);
-
-        return;
-      }
+      servicesToInsert.push({
+        service_id: service.id,
+        original_price: originalPrice,
+        discounted_price: discountedPrice,
+        doctor_id: formData.doctor_id,
+      });
     }
+
+    // 4. Registratsiya yozuvi yaratish (faqat bitta)
+    const { data: registration, error: regError } = await supabase
+      .from("registrations")
+      .insert({
+        patient_id: patient.id,
+        total_amount: totalAmount,
+        discount: Number(formData.discount),
+        order_number: orderNumber,
+        doctor_id: formData.doctor_id,
+      })
+      .select()
+      .single();
+
+    console.log(registration);
+    if (regError || !registration) {
+      toast.error("Registratsiyani yaratishda xatolik");
+      setLoading(false);
+      return;
+    }
+
+    // 5. register_services jadvaliga xizmatlarni yozish (order_number bilan)
+    const registerServicesPayload = servicesToInsert.map((item) => ({
+      order_id: orderNumber, // Bu foreign key bo'lishi uchun registrations.order_number unikal bo'lishi kerak
+      service_id: item.service_id,
+      service_price: item.original_price,
+      doctor_id: item.doctor_id,
+      registration_id: registration.id,
+    }));
+
+    const { error: rsError } = await supabase
+      .from("registrations_services")
+      .insert(registerServicesPayload);
+
+    if (rsError) {
+      toast.error("Xizmatlarni saqlashda xatolik 350");
+      console.error(rsError);
+      setLoading(false);
+      return;
+    }
+
     setLoading(false);
     toast.success("Muvafaqiyatli ro'yhatdan o'tdi!");
   };
@@ -327,32 +456,6 @@ export default function RegisterPage() {
     selectedServices,
     services
   );
-
-  console.log(selectedServiceDetails);
-
-  const handlePhoneNUmberChange = (e) => {
-    const { name, value } = e.target;
-
-    // Telefon uchun +998 avtomatik qo‘shish
-    if (name === "phone") {
-      let formatted = value;
-
-      // Agar +998 bilan boshlanmasa, boshiga qo‘shib qo‘yish
-      if (!formatted.startsWith("+998")) {
-        formatted = "+998" + formatted.replace(/^(\+998)?/, "");
-      }
-
-      // Maksimal 13 belgidan oshmasin: "+998" + 9 raqam
-      if (formatted.length > 13) {
-        formatted = formatted.slice(0, 13);
-      }
-
-      setFormData((prev) => ({ ...prev, [name]: formatted }));
-      return;
-    }
-
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   return (
     <div className="flex flex-col lg:flex-row items-start gap-4">
