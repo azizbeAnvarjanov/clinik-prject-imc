@@ -1,9 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
-import Navbar from "@/components/Navbar";
-import { EmployeeProvider } from "../context/EmployeeContext";
 import { ThemeProvider } from "@/components/ui/theme-provider";
-import { Toaster } from "react-hot-toast";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

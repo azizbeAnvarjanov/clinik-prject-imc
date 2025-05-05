@@ -1,241 +1,372 @@
 "use client";
-
 import { useEffect, useState } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableHead,
-  TableBody,
-  TableCell,
   TableRow,
+  TableCell,
+  TableBody,
   TableHeader,
 } from "@/components/ui/table";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { createClient } from "@/utils/supabase/client";
-import toast from "react-hot-toast";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectTrigger,
+  SelectValue,
   SelectContent,
   SelectItem,
-  SelectValue,
 } from "@/components/ui/select";
-import { DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { createClient } from "@/utils/supabase/client";
+import { BanknoteArrowDown, RefreshCw } from "lucide-react";
+
+const statusColors = {
+  unpaid: "text-red-500",
+  has_been_paid: "text-green-500",
+  partially_paid: "text-yellow-500",
+  refund: "text-gray-500",
+};
+
+const STATUSES = [
+  { value: "unpaid", label: "To‘lanmagan" },
+  { value: "has_been_paid", label: "To‘liq to‘langan" },
+  { value: "partially_paid", label: "Qisman to‘langan" },
+  { value: "refund", label: "Qaytarilgan" },
+];
 
 export default function CashierPage() {
-  const [groupedRegistrations, setGroupedRegistrations] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState(null);
-  const [amountPaid, setAmountPaid] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [loading, setLoading] = useState(false);
   const supabase = createClient();
+  const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openSheetId, setOpenSheetId] = useState(null);
+  const [payAmount, setPayAmount] = useState(0);
+  const [refundAmount, setRefundAmount] = useState(0);
+  const [processing, setProcessing] = useState(false);
+  const [orderSearch, setOrderSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const perPage = 11;
+  const [totalCount, setTotalCount] = useState(0);
 
-  useEffect(() => {
-    fetchGroupedRegistrations();
-  }, []);
+  const getStatusLabel = (value) => {
+    const status = STATUSES.find((s) => s.value === value);
+    return status ? status.label : value;
+  };
 
-  const fetchGroupedRegistrations = async () => {
+  const fetchRegistrations = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("registrations")
-      .select(
-        "*, patients(first_name,last_name), doctors(full_name, bonus_percent), services(name, price)"
-      )
-      .in("status", ["to'lanmagan", "kam to'landi"]);
+
+    let query = supabase.from("registrations").select(
+      `id, order_number, total_amount, discount, paid, status, created_at,
+        patient:patient_id (first_name, last_name),
+        doctor:doctor_id (full_name)`,
+      { count: "exact" }
+    );
+
+    if (orderSearch) {
+      const parsedNumber = parseInt(orderSearch, 10);
+      if (!isNaN(parsedNumber)) {
+        query = query.eq("order_number", parsedNumber);
+      }
+    }
+
+    if (statusFilter) {
+      query = query.eq("status", statusFilter);
+    }
+
+    query = query
+      .order("created_at", { ascending: false })
+      .range((page - 1) * perPage, page * perPage - 1);
+
+    const { data, error, count } = await query;
 
     if (error) {
       console.error(error);
-      toast.error("Xatolik: Ma'lumotlar olinmadi");
       setLoading(false);
       return;
     }
 
-    const grouped = Object.values(
-      data.reduce((acc, item) => {
-        const key = item.order_number;
-        if (!acc[key]) {
-          acc[key] = {
-            order_number: key,
-            patient: item.patients,
-            discount: item.discount || 0,
-            items: [],
-            doctors: [],
-          };
-        }
-        acc[key].items.push(item);
-        acc[key].doctors.push(item.doctors);
-        return acc;
-      }, {})
-    );
-
-    setGroupedRegistrations(grouped);
+    setRegistrations(data || []);
+    setTotalCount(count || 0);
     setLoading(false);
   };
 
-  const handlePayment = async () => {
-    const group = selectedGroup;
-    if (!group || !amountPaid || amountPaid <= 0) {
-      return toast.error("To‘lov summasi noto‘g‘ri kiritilgan");
-    }
+  useEffect(() => {
+    fetchRegistrations();
+  }, [orderSearch, statusFilter, page]);
 
-    const total = group.items.reduce((sum, r) => sum + r.total_amount, 0);
-    const discountAmount = (total * (group.discount || 0)) / 100;
-    const amountToPay = total - discountAmount;
-    const remainingAmount = amountToPay - amountPaid;
+  const handlePayment = async (registration) => {
+    const remaining =
+      Number(registration.total_amount) - Number(registration.paid || 0);
 
-    const { error: paymentError } = await supabase.from("payments").insert({
-      order_number: group.order_number,
-      amount_paid: amountPaid,
-      payment_method: paymentMethod,
-      paid_at: new Date().toISOString(),
-    });
+    if (payAmount <= 0 || payAmount > remaining) return;
 
-    if (paymentError) {
-      console.error(paymentError);
-      return toast.error("To‘lovni yozishda xatolik");
-    }
+    setProcessing(true);
 
-    const status = remainingAmount <= 0 ? "paid" : "kam to'landi";
+    const newPaid = Number(registration.paid || 0) + payAmount;
+    const newStatus =
+      newPaid >= Number(registration.total_amount)
+        ? "has_been_paid"
+        : "partially_paid";
 
-    for (const r of group.items) {
-      await supabase
-        .from("registrations")
-        .update({ status, paid: new Date().toISOString() })
-        .eq("id", r.id);
+    await supabase
+      .from("registrations")
+      .update({ paid: newPaid.toString(), status: newStatus })
+      .eq("id", registration.id);
 
-      const bonusAmount = (r.services.price * r.doctors.bonus_percent) / 100;
-      await supabase.from("bonuses").insert({
-        registration_id: r.id,
-        doctor_id: r.doctor_id,
-        service_id: r.service_id,
-        bonus_amount: bonusAmount,
-        calculated_at: new Date().toISOString(),
-        paid: false,
-      });
-    }
-
-    toast.success("To‘lov qabul qilindi");
-    setSelectedGroup(null);
-    fetchGroupedRegistrations();
+    setProcessing(false);
+    setOpenSheetId(null);
+    setPayAmount(0);
+    fetchRegistrations();
   };
 
+  const handleRefund = async (registration) => {
+    if (refundAmount <= 0 || refundAmount > registration.paid) return;
+
+    const newPaid = Number(registration.paid || 0) - refundAmount;
+
+    await supabase
+      .from("registrations")
+      .update({ paid: newPaid.toString(), status: "refund" })
+      .eq("id", registration.id);
+
+    setOpenSheetId(null);
+    setRefundAmount(0);
+    fetchRegistrations();
+  };
+
+  const totalPages = Math.ceil(totalCount / perPage);
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">💳 Kassir sahifasi</h1>
+    <div className="">
+      <div className="flex flex-wrap gap-2 items-center mb-3 text-sm">
+        <Button size={"sm"} onClick={fetchRegistrations}>
+          Yangilash
+          <RefreshCw />
+        </Button>
+        {(orderSearch || statusFilter) && (
+          <Button
+            size={"sm"}
+            onClick={() => {
+              setOrderSearch("");
+              setStatusFilter("");
+              setPage(1);
+            }}
+          >
+            Filtrni tozalash
+          </Button>
+        )}
+        <div className="ml-auto font-medium">Bemorlar soni {totalCount}</div>
+      </div>
 
-      {loading ? (
-        <p>Yuklanmoqda...</p>
-      ) : (
-        <Card>
-          <CardContent className="overflow-x-auto p-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableCell>#</TableCell>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Bemor</TableCell>
-                  <TableCell>Xizmatlar</TableCell>
-                  <TableCell>Chegirma</TableCell>
-                  <TableCell>To‘lash kerak</TableCell>
-                  <TableCell>Amal</TableCell>
+      <Table className="relative">
+        <TableHeader className="sticky left-0 top-0">
+          <TableRow>
+            <TableCell className={"w-[50px]"}>ID</TableCell>
+            <TableCell>Bemor</TableCell>
+            <TableCell>Shifokor</TableCell>
+            <TableCell>Jami</TableCell>
+            <TableCell>Chegirma</TableCell>
+            <TableCell>Tulangan</TableCell>
+            <TableCell className="w-[150px]">Status</TableCell>
+            <TableCell>Sana</TableCell>
+            <TableCell className="w-[50px]">Amallar</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className={"w-[50px]"}>
+              <Input
+                size={"sm"}
+                placeholder="0"
+                value={orderSearch}
+                onChange={(e) => setOrderSearch(e.target.value)}
+                className="w-[50px] text-sm"
+              />
+            </TableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
+            <TableCell>
+              <Select
+                size={"sm"}
+                value={statusFilter}
+                onValueChange={(val) => setStatusFilter(val)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUSES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </TableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading
+            ? [...Array(5)].map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell colSpan={9}>
+                    <Skeleton className="h-6 w-full" />
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {groupedRegistrations.map((group, index) => {
-                  const total = group.items.reduce(
-                    (sum, r) => sum + r.total_amount,
-                    0
-                  );
-                  const discountAmount = (total * (group.discount || 0)) / 100;
-                  const toPay = total - discountAmount;
-                  return (
-                    <TableRow key={group.order_number}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>{group.order_number}</TableCell>
-                      <TableCell>
-                        {group.patient.first_name} {group.patient.last_name}
-                      </TableCell>
-                      <TableCell>
-                        <ul className="list-disc pl-4">
-                          {group.items.map((r) => (
-                            <li key={r.id}>
-                              {r.services.name} (
-                              {r.total_amount?.toLocaleString()} so'm)
-                            </li>
-                          ))}
-                        </ul>
-                      </TableCell>
-                      <TableCell>{group.discount}%</TableCell>
-                      <TableCell>{toPay.toLocaleString()} so'm</TableCell>
-                      <TableCell>
-                        <Sheet>
-                          <SheetTrigger asChild>
-                            <Button onClick={() => setSelectedGroup(group)}>
-                              To‘lov qilish
+              ))
+            : registrations.map((reg) => (
+                <TableRow key={reg.id}>
+                  <TableCell>{reg.order_number}</TableCell>
+                  <TableCell>
+                    {reg.patient?.first_name} {reg.patient?.last_name}
+                  </TableCell>
+                  <TableCell>{reg.doctor?.full_name}</TableCell>
+                  <TableCell>
+                    {reg.total_amount?.toLocaleString()} so'm
+                  </TableCell>
+                  <TableCell>{reg.discount || 0}%</TableCell>
+                  <TableCell>
+                    {Number(reg.paid)?.toLocaleString() || 0} so'm
+                  </TableCell>
+                  <TableCell className={cn(statusColors[reg.status] || "")}>
+                    {getStatusLabel(reg.status)}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(reg.created_at).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      className={"w-full"}
+                      variant="outline"
+                      onClick={() => setOpenSheetId(reg.id)}
+                    >
+                      <BanknoteArrowDown />
+                    </Button>
+                    <Sheet
+                      open={openSheetId === reg.id}
+                      onOpenChange={() => setOpenSheetId(null)}
+                    >
+                      <SheetContent>
+                        <SheetHeader>
+                          <SheetTitle>To'lov yoki qaytarish</SheetTitle>
+                          <div className="mt-4 space-y-2">
+                            <p>
+                              Jami to'lov: {reg.total_amount?.toLocaleString()}{" "}
+                              so'm
+                            </p>
+                            <p>
+                              Tulangan:{" "}
+                              {Number(reg.paid)?.toLocaleString() || 0} so'm
+                            </p>
+                            <p>
+                              Qoldiq:{" "}
+                              {(reg.total_amount - reg.paid)?.toLocaleString()}{" "}
+                              so'm
+                            </p>
+                            <Input
+                              type="number"
+                              placeholder="Qancha to'lov qabul qilinmoqda"
+                              className={
+                                payAmount > reg.total_amount - reg.paid
+                                  ? "border-red-500"
+                                  : ""
+                              }
+                              value={payAmount || ""}
+                              onChange={(e) =>
+                                setPayAmount(
+                                  e.target.value === ""
+                                    ? 0
+                                    : parseInt(e.target.value)
+                                )
+                              }
+                            />
+                            <Button
+                              disabled={
+                                processing ||
+                                payAmount <= 0 ||
+                                payAmount > reg.total_amount - reg.paid
+                              }
+                              onClick={() => handlePayment(reg)}
+                              className="w-full mt-2"
+                            >
+                              {processing
+                                ? "Yuklanmoqda..."
+                                : "To'lovni qabul qilish"}
                             </Button>
-                          </SheetTrigger>
-                          <SheetContent>
-                            <DialogTitle></DialogTitle>
-                            <div className="space-y-4">
-                              <h2 className="text-lg font-semibold">
-                                To‘lov ma'lumotlari
-                              </h2>
-                              <p>
-                                To‘lash kerak:{" "}
-                                <strong>{toPay.toLocaleString()} so'm</strong>
-                              </p>
-                              <Label>To‘lov usuli</Label>
-                              <Select
-                                value={paymentMethod}
-                                onValueChange={setPaymentMethod}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="cash">Naqd</SelectItem>
-                                  <SelectItem value="card">Plastik</SelectItem>
-                                </SelectContent>
-                              </Select>
+                            {reg.paid > 0 && (
+                              <>
+                                <Input
+                                  type="number"
+                                  placeholder="Qancha qaytarilmoqda"
+                                  className={
+                                    refundAmount > reg.paid
+                                      ? "border-red-500"
+                                      : ""
+                                  }
+                                  value={refundAmount || ""}
+                                  onChange={(e) =>
+                                    setRefundAmount(
+                                      e.target.value === ""
+                                        ? 0
+                                        : parseInt(e.target.value)
+                                    )
+                                  }
+                                />
+                                <Button
+                                  disabled={
+                                    refundAmount <= 0 || refundAmount > reg.paid
+                                  }
+                                  onClick={() => handleRefund(reg)}
+                                  className="w-full"
+                                >
+                                  To'lovni qaytarish
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </SheetHeader>
+                      </SheetContent>
+                    </Sheet>
+                  </TableCell>
+                </TableRow>
+              ))}
+        </TableBody>
+      </Table>
 
-                              <Label>Qancha to‘landi</Label>
-                              <Input
-                                type="number"
-                                value={amountPaid}
-                                onChange={(e) =>
-                                  setAmountPaid(parseInt(e.target.value))
-                                }
-                              />
-
-                              <p>
-                                Qoldiq:{" "}
-                                <strong>
-                                  {Math.max(
-                                    0,
-                                    toPay - amountPaid
-                                  ).toLocaleString()}{" "}
-                                  so'm
-                                </strong>
-                              </p>
-
-                              <Button onClick={handlePayment}>
-                                To‘lovni qabul qilish
-                              </Button>
-                            </div>
-                          </SheetContent>
-                        </Sheet>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+      <div className="flex justify-between items-center mt-6">
+        <Button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+          Ortga
+        </Button>
+        <div className="flex gap-2 items-center">
+          {Array.from({ length: totalPages }, (_, i) => (
+            <Button
+              key={i + 1}
+              variant={page === i + 1 ? "default" : "outline"}
+              onClick={() => setPage(i + 1)}
+            >
+              {i + 1}
+            </Button>
+          ))}
+        </div>
+        <Button
+          disabled={page >= totalPages}
+          onClick={() => setPage((p) => p + 1)}
+        >
+          Keyingi
+        </Button>
+      </div>
     </div>
   );
 }
