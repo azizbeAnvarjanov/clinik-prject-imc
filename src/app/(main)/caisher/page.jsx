@@ -26,7 +26,14 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
-import { BanknoteArrowDown, RefreshCw } from "lucide-react";
+import {
+  BanknoteArrowDown,
+  BanknoteArrowUp,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+} from "lucide-react";
+import CostSheet from "@/components/CostSheet";
 
 const statusColors = {
   unpaid: "text-red-500",
@@ -148,7 +155,7 @@ export default function CashierPage() {
   return (
     <div className="">
       <div className="flex flex-wrap gap-2 items-center mb-3 text-sm">
-        <Button size={"sm"} onClick={fetchRegistrations}>
+        <Button onClick={fetchRegistrations}>
           Yangilash
           <RefreshCw />
         </Button>
@@ -164,6 +171,7 @@ export default function CashierPage() {
             Filtrni tozalash
           </Button>
         )}
+        <CostSheet />
         <div className="ml-auto font-medium">Bemorlar soni {totalCount}</div>
       </div>
 
@@ -178,7 +186,7 @@ export default function CashierPage() {
             <TableCell>Tulangan</TableCell>
             <TableCell className="w-[150px]">Status</TableCell>
             <TableCell>Sana</TableCell>
-            <TableCell className="w-[50px]">Amallar</TableCell>
+            <TableCell className="w-[60px]">Amallar</TableCell>
           </TableRow>
           <TableRow>
             <TableCell className={"w-[50px]"}>
@@ -252,7 +260,7 @@ export default function CashierPage() {
                       variant="outline"
                       onClick={() => setOpenSheetId(reg.id)}
                     >
-                      <BanknoteArrowDown />
+                      <BanknoteArrowDown /> / <BanknoteArrowUp />
                     </Button>
                     <Sheet
                       open={openSheetId === reg.id}
@@ -262,57 +270,74 @@ export default function CashierPage() {
                         <SheetHeader>
                           <SheetTitle>To'lov yoki qaytarish</SheetTitle>
                           <div className="mt-4 space-y-2">
-                            <p>
-                              Jami to'lov: {reg.total_amount?.toLocaleString()}{" "}
-                              so'm
+                            <p className="flex items-center justify-between border-b p-2">
+                              <span>Jami to'lov:</span>{" "}
+                              {reg.total_amount?.toLocaleString()} so'm
                             </p>
-                            <p>
-                              Tulangan:{" "}
+                            <p className="flex items-center justify-between border-b p-2">
+                              <span>Tulangan: </span>
                               {Number(reg.paid)?.toLocaleString() || 0} so'm
                             </p>
-                            <p>
-                              Qoldiq:{" "}
-                              {(reg.total_amount - reg.paid)?.toLocaleString()}{" "}
+                            <p className="flex items-center justify-between border-b p-2">
+                              <span>Qoldiq: </span>
+                              {(
+                                reg.total_amount - reg.paid
+                              )?.toLocaleString()}{" "}
                               so'm
                             </p>
-                            <Input
-                              type="number"
-                              placeholder="Qancha to'lov qabul qilinmoqda"
-                              className={
-                                payAmount > reg.total_amount - reg.paid
-                                  ? "border-red-500"
-                                  : ""
-                              }
-                              value={payAmount || ""}
-                              onChange={(e) =>
-                                setPayAmount(
-                                  e.target.value === ""
-                                    ? 0
-                                    : parseInt(e.target.value)
-                                )
-                              }
-                            />
-                            <Button
-                              disabled={
-                                processing ||
-                                payAmount <= 0 ||
-                                payAmount > reg.total_amount - reg.paid
-                              }
-                              onClick={() => handlePayment(reg)}
-                              className="w-full mt-2"
-                            >
-                              {processing
-                                ? "Yuklanmoqda..."
-                                : "To'lovni qabul qilish"}
-                            </Button>
+                            <br />
+                            {reg.status !== "has_been_paid" ? (
+                              <div className="space-y-2">
+                                <h1 className="flex gap-3 items-center">
+                                  Qabul qilish{" "}
+                                  <BanknoteArrowDown color="green" />
+                                </h1>
+                                <Input
+                                  type="number"
+                                  placeholder="Qancha to'lov qabul qilinmoqda"
+                                  className={
+                                    payAmount > reg.total_amount - reg.paid
+                                      ? "border-red-500"
+                                      : ""
+                                  }
+                                  value={payAmount || ""}
+                                  onChange={(e) =>
+                                    setPayAmount(
+                                      e.target.value === ""
+                                        ? 0
+                                        : parseInt(e.target.value)
+                                    )
+                                  }
+                                />
+                                <Button
+                                  disabled={
+                                    processing ||
+                                    payAmount <= 0 ||
+                                    payAmount > reg.total_amount - reg.paid
+                                  }
+                                  onClick={() => handlePayment(reg)}
+                                  className="w-full mt-2"
+                                >
+                                  {processing
+                                    ? "Yuklanmoqda..."
+                                    : "To'lovni qabul qilish"}
+                                </Button>
+                              </div>
+                            ) : (
+                              ""
+                            )}
+
                             {reg.paid > 0 && (
-                              <>
+                              <div className="space-y-2">
+                                <h1 className="flex gap-3 items-center">
+                                  Qaytarish <BanknoteArrowUp color="red" />
+                                </h1>
                                 <Input
                                   type="number"
                                   placeholder="Qancha qaytarilmoqda"
                                   className={
                                     refundAmount > reg.paid
-                                      ? "border-red-500"
+                                      ? "border-red-500 "
                                       : ""
                                   }
                                   value={refundAmount || ""}
@@ -333,7 +358,7 @@ export default function CashierPage() {
                                 >
                                   To'lovni qaytarish
                                 </Button>
-                              </>
+                              </div>
                             )}
                           </div>
                         </SheetHeader>
@@ -345,9 +370,13 @@ export default function CashierPage() {
         </TableBody>
       </Table>
 
-      <div className="flex justify-between items-center mt-6">
-        <Button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-          Ortga
+      <div className="flex gap-2 items-center mt-6">
+        <Button
+          className={"w-[37px] h-[37px]"}
+          disabled={page <= 1}
+          onClick={() => setPage((p) => p - 1)}
+        >
+          <ChevronLeft />
         </Button>
         <div className="flex gap-2 items-center">
           {Array.from({ length: totalPages }, (_, i) => (
@@ -361,10 +390,11 @@ export default function CashierPage() {
           ))}
         </div>
         <Button
+          className={"w-[37px] h-[37px]"}
           disabled={page >= totalPages}
           onClick={() => setPage((p) => p + 1)}
         >
-          Keyingi
+          <ChevronRight />
         </Button>
       </div>
     </div>

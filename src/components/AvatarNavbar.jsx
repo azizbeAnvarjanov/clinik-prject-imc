@@ -1,15 +1,17 @@
-import { LogOutIcon } from "lucide-react";
+import { LogOutIcon, PanelsTopLeft, UserRoundCog, Wallet } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { logout } from "@/app/(login)/login/actions";
 import getInitials from "@/app/hooks/getInitials";
+import Link from "next/link";
 
 export default function AvatarNavbar({ user, employee }) {
   const av = getInitials(employee.fio);
@@ -31,7 +33,30 @@ export default function AvatarNavbar({ user, employee }) {
             {user.email}
           </span>
         </DropdownMenuLabel>
-
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link href="/caisher" className="flex items-center">
+              <PanelsTopLeft
+                size={16}
+                className="opacity-60"
+                aria-hidden="true"
+              />
+              <span>Asosiy sahifa</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/balance" className="flex items-center">
+              <Wallet size={16} className="opacity-60" aria-hidden="true" />
+              <span>Balans</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/admin-balance" className="flex items-center">
+              <Wallet size={16} className="opacity-60" aria-hidden="true" />
+              <span>Admin balans</span>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
         <DropdownMenuItem onClick={logout} className="cursor-pointer">
           <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
           <span>Tizimdan chiqish</span>
