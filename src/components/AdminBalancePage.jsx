@@ -8,6 +8,10 @@ import {
   TrendingDown,
   PiggyBank,
   RefreshCw,
+  Tickets,
+  CreditCard,
+  CircleX,
+  OctagonAlert,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
@@ -22,11 +26,19 @@ import {
 import { Input } from "./ui/input";
 
 export default function AdminBalancePage() {
+  const [cash, setCash] = useState(0);
+  const [card, setCard] = useState(0);
   const [expected, setExpected] = useState(0);
   const [received, setReceived] = useState(0);
   const [expenses, setExpenses] = useState(0);
   const [loading, setLoading] = useState(false);
   const [period, setPeriod] = useState("day");
+  const [expectedCount, setExpectedCount] = useState(0);
+  const [receivedCount, setReceivedCount] = useState(0);
+  const [expensesCont, setExpensesCont] = useState(0);
+  const [refundCount, setRefundCount] = useState(0);
+  const [refundAmount, setRefundAmount] = useState(0);
+
   const [selectedDate, setSelectedDate] = useState(
     () => new Date().toISOString().split("T")[0]
   );
@@ -38,6 +50,7 @@ export default function AdminBalancePage() {
   );
 
   const supabase = createClient();
+  const refundSumm = expected - received;
 
   const fetchData = async () => {
     setLoading(true);
@@ -59,10 +72,9 @@ export default function AdminBalancePage() {
 
     const fromString = fromDate.toISOString().split("T")[0];
     const toString = toDate.toISOString().split("T")[0];
-
     const { data: registrations, error: regError } = await supabase
       .from("registrations")
-      .select("total_amount, paid, created_at")
+      .select("total_amount, paid, created_at, cash, card, status")
       .gte("created_at", fromString)
       .lt("created_at", toString);
 
@@ -74,12 +86,43 @@ export default function AdminBalancePage() {
 
     let totalExpected = 0;
     let totalReceived = 0;
+    let totalCash = 0;
+    let totalCard = 0;
+    let totalExpectedCount = 0;
+    let totalReceivedCount = 0;
+    let refundCount = 0;
+    let refundAmount = 0;
+
     registrations.forEach((item) => {
-      totalExpected += parseInt(item.total_amount || 0);
-      totalReceived += parseInt(item.paid || 0);
+      const amount = parseInt(item.total_amount || 0);
+      const paid = parseInt(item.paid || 0);
+      const cash = parseInt(item.cash || 0);
+      const card = parseInt(item.card || 0);
+      const status = item.status || "";
+
+      totalExpected += amount;
+      totalCash += cash;
+      totalCard += card;
+
+      totalExpectedCount += 1;
+      if (paid > 0) {
+        totalReceived += paid;
+        totalReceivedCount += 1;
+      }
+      if (status.toLowerCase() === "refund") {
+        refundCount += 1;
+        refundAmount += amount; // yoki amount, agar refund miqdori `paid` emas, balki `total_amount` bo‘lsa
+      }
     });
+
     setExpected(totalExpected);
     setReceived(totalReceived);
+    setCash(totalCash);
+    setCard(totalCard);
+    setExpectedCount(totalExpectedCount);
+    setReceivedCount(totalReceivedCount);
+    setRefundCount(refundCount);
+    setRefundAmount(refundAmount);
 
     const { data: expensesData, error: expError } = await supabase
       .from("xarajatlar")
@@ -96,7 +139,9 @@ export default function AdminBalancePage() {
     expensesData.forEach((item) => {
       totalExpenses += parseInt(item.sum || 0);
     });
+
     setExpenses(totalExpenses);
+    setExpensesCont(expensesData.length);
     setLoading(false);
   };
 
@@ -105,27 +150,62 @@ export default function AdminBalancePage() {
   }, [period, selectedDate, selectedMonth, selectedYear]);
 
   const balance = received - expenses;
-
   const cards = [
     {
       title: "Kutilayotgan summa",
+      count: expectedCount,
       value: expected.toLocaleString("uz-UZ") + " so'm",
       icon: <Banknote className="text-green-600 w-10 h-10" />,
+      icon2: <Banknote className="text-green-600 w-20 h-20" />,
+    },
+    {
+      title: "Tushum farqi",
+      count: expectedCount - receivedCount,
+      value: refundSumm.toLocaleString("uz-UZ") + " so'm",
+      icon: <OctagonAlert className="text-yellow-600 w-10 h-10" />,
+      icon2: <OctagonAlert className="text-yellow-600 w-20 h-20" />,
     },
     {
       title: "Qabul qilingan summa",
+      count: receivedCount,
       value: received.toLocaleString("uz-UZ") + " so'm",
       icon: <Wallet className="text-blue-600 w-10 h-10" />,
+      icon2: <Wallet className="text-blue-600 w-20 h-20" />,
+    },
+    {
+      title: "Bekor qilinganlar",
+      count: expectedCount - receivedCount,
+      value: refundSumm.toLocaleString("uz-UZ") + " so'm",
+      icon: <CircleX className="text-red-600 w-10 h-10" />,
+      icon2: <CircleX className="text-red-600 w-20 h-20" />,
+    },
+    {
+      title: "Kassadagi pul",
+      count: 0,
+      value: balance.toLocaleString("uz-UZ") + " so'm",
+      icon: <PiggyBank className="text-yellow-600 w-10 h-10" />,
+      icon2: <PiggyBank className="text-yellow-600 w-20 h-20" />,
     },
     {
       title: "Xarajatlar",
+      count: expensesCont,
       value: expenses.toLocaleString("uz-UZ") + " so'm",
       icon: <TrendingDown className="text-red-600 w-10 h-10" />,
+      icon2: <TrendingDown className="text-red-600 w-20 h-20" />,
     },
     {
-      title: "Kassa qoldiq",
-      value: balance.toLocaleString("uz-UZ") + " so'm",
-      icon: <PiggyBank className="text-yellow-600 w-10 h-10" />,
+      title: "Naxt",
+      count: 0,
+      value: cash.toLocaleString("uz-UZ") + " so'm",
+      icon: <Tickets className="text-yellow-600 w-10 h-10" />,
+      icon2: <Tickets className="text-yellow-600 w-20 h-20" />,
+    },
+    {
+      title: "Plastik",
+      count: 0,
+      value: card.toLocaleString("uz-UZ") + " so'm",
+      icon: <CreditCard className="text-blue-600 w-10 h-10" />,
+      icon2: <CreditCard className="text-blue-600 w-20 h-20" />,
     },
   ];
 
@@ -204,26 +284,40 @@ export default function AdminBalancePage() {
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-4">
-          <Skeleton className="h-24 border rounded-xl w-full" />
-          <Skeleton className="h-24 border rounded-xl w-full" />
-          <Skeleton className="h-24 border rounded-xl w-full" />
-          <Skeleton className="h-24 border rounded-xl w-full" />
+          <Skeleton className="h-28 border rounded-xl w-full" />
+          <Skeleton className="h-28 border rounded-xl w-full" />
+          <Skeleton className="h-28 border rounded-xl w-full" />
+          <Skeleton className="h-28 border rounded-xl w-full" />
+          <Skeleton className="h-28 border rounded-xl w-full" />
+          <Skeleton className="h-28 border rounded-xl w-full" />
+          <Skeleton className="h-28 border rounded-xl w-full" />
+          <Skeleton className="h-28 border rounded-xl w-full" />
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-4">
           {cards.map((card, idx) => (
-            <Card key={idx} className="shadow-md rounded-2xl">
+            <Card
+              key={idx}
+              className="shadow-md rounded-2xl relative overflow-hidden"
+            >
               <CardContent className="flex items-center gap-4">
-                <div>{card.icon}</div>
+                <div className="absolute right-0 bottom-0 -rotate-30 blur-2xl">
+                  {card.icon2}
+                </div>
+                <div className="">{card.icon}</div>
                 <div>
                   <div className="text-sm text-gray-500">{card.title}</div>
                   <div className="text-xl font-bold">{card.value}</div>
+                  <div className="text-sm text-gray-500">
+                    Soni: {card.count}
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
     </div>
   );
 }

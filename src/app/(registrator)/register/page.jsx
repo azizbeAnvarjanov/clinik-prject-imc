@@ -57,7 +57,6 @@ export default function RegisterPage() {
 
   const [total, setTotal] = useState(0);
   const [existingPatient, setExistingPatient] = useState(null);
-  const [showCheckDialog, setShowCheckDialog] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -142,95 +141,6 @@ export default function RegisterPage() {
       }));
     }
   };
-
-  // const handleSubmit = async () => {
-  //   if (
-  //     !formData.first_name ||
-  //     !formData.last_name ||
-  //     !formData.phone ||
-  //     !formData.birth_date ||
-  //     !formData.gender ||
-  //     selectedServices.length === 0 ||
-  //     !formData.doctor_id
-  //   ) {
-  //     toast.error("Majburiy maydonlarni to‘ldiring");
-  //     return;
-  //   }
-
-  //   setLoading(true);
-
-  //   // Bemorni tekshirish yoki yaratish
-  //   let patient = existingPatient;
-  //   if (!patient) {
-  //     const { data, error } = await supabase
-  //       .from("patients")
-  //       .insert({
-  //         phone: formData.phone,
-  //         first_name: formData.first_name,
-  //         last_name: formData.last_name,
-  //         middle_name: formData.middle_name,
-  //         birth_date: formData.birth_date,
-  //         gender: formData.gender,
-  //         region: formData.region,
-  //         district: formData.district,
-  //         area: formData.area,
-  //       })
-  //       .select()
-  //       .single();
-
-  //     if (error || !data) {
-  //       toast.error("Bemorni saqlashda xatolik");
-  //       setLoading(false);
-  //       return;
-  //     }
-
-  //     patient = data;
-  //   }
-
-  //   // Bitta umumiy order_number olish
-  //   const { data: lastReg } = await supabase
-  //     .from("registrations")
-  //     .select("order_number")
-  //     .order("order_number", { ascending: false })
-  //     .limit(1)
-  //     .single();
-
-  //   const orderNumber = (lastReg?.order_number || 0) + 1;
-
-  //   // Har bir xizmat uchun registratsiya qilish, lekin order_number bir xil bo‘lishi kerak
-  //   for (const service_id of selectedServices) {
-  //     const service = services.find((s) => s.id === service_id);
-  //     const originalPrice = service?.price || 0;
-  //     const discountedPrice = Math.round(
-  //       originalPrice * (1 - Number(formData.discount) / 100)
-  //     );
-
-  //     setOrderNumber(orderNumber);
-
-  //     const { data: registration, error: regError } = await supabase
-  //       .from("registrations")
-  //       .insert({
-  //         patient_id: patient.id,
-  //         doctor_id: formData.doctor_id,
-  //         total_amount: discountedPrice,
-  //         discount: Number(formData.discount),
-  //         status: "to'lanmagan",
-  //         order_number: orderNumber, // Hamma xizmatlarga bitta raqam
-  //         service_id: service_id,
-  //       })
-  //       .select()
-  //       .single();
-
-  //     if (regError || !registration) {
-  //       toast.error(`Registratsiyada xatolik (${service?.name})`);
-  //       setLoading(false);
-
-  //       return;
-  //     }
-  //   }
-  //   setLoading(false);
-  //   toast.success("Muvafaqiyatli ro'yhatdan o'tdi!");
-  // };
 
   const handleSubmit = async () => {
     if (
@@ -579,6 +489,9 @@ export default function RegisterPage() {
                   <SelectItem value="Namangan">Namangan</SelectItem>
                   <SelectItem value="Farg'ona">Farg'ona</SelectItem>
                   <SelectItem value="Andijon">Andijon</SelectItem>
+                  <SelectItem value="Navoiy">Navoiy</SelectItem>
+                  <SelectItem value="Jizzax">Jizzax</SelectItem>
+                  <SelectItem value="Toshkent">Toshkent</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -595,8 +508,13 @@ export default function RegisterPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Norin">Norin</SelectItem>
-                  <SelectItem value="Pop">Pop</SelectItem>
                   <SelectItem value="Uchqo'rg'on">Uchqo'rg'on</SelectItem>
+                  <SelectItem value="Pop">Pop</SelectItem>
+                  <SelectItem value="Pop">Mingbuloq</SelectItem>
+                  <SelectItem value="Pop">Uychi</SelectItem>
+                  <SelectItem value="Pop">Chortoq</SelectItem>
+                  <SelectItem value="Pop">Chust</SelectItem>
+                  <SelectItem value="Pop">Kosonsoy</SelectItem>
                 </SelectContent>
               </Select>
             </div>

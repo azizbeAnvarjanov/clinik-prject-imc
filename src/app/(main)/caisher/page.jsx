@@ -31,9 +31,13 @@ import {
   BanknoteArrowUp,
   ChevronLeft,
   ChevronRight,
+  PanelRightOpen,
   RefreshCw,
+  X,
 } from "lucide-react";
 import CostSheet from "@/components/CostSheet";
+import toast from "react-hot-toast";
+import { CancelPatientDialog } from "@/components/CancelPatientDialog";
 
 const statusColors = {
   unpaid: "text-red-500",
@@ -55,10 +59,10 @@ export default function CashierPage() {
   const [loading, setLoading] = useState(true);
   const [openSheetId, setOpenSheetId] = useState(null);
   const [payAmount, setPayAmount] = useState(0);
-  const [refundAmount, setRefundAmount] = useState(0);
   const [processing, setProcessing] = useState(false);
   const [orderSearch, setOrderSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState(""); // "cash" yoki "card"
   const [page, setPage] = useState(1);
   const perPage = 11;
   const [totalCount, setTotalCount] = useState(0);
@@ -69,12 +73,12 @@ export default function CashierPage() {
   };
 
   const fetchRegistrations = async () => {
-    setLoading(true);
-
     let query = supabase.from("registrations").select(
-      `id, order_number, total_amount, discount, paid, status, created_at,
-        patient:patient_id (first_name, last_name),
-        doctor:doctor_id (full_name)`,
+      `
+      id, order_number, total_amount, discount, paid, status, created_at, cash, card,
+      patient:patient_id (first_name, last_name),
+      doctor:doctor_id (full_name)
+      `,
       { count: "exact" }
     );
 
@@ -97,57 +101,134 @@ export default function CashierPage() {
 
     if (error) {
       console.error(error);
-      setLoading(false);
       return;
     }
 
     setRegistrations(data || []);
     setTotalCount(count || 0);
-    setLoading(false);
   };
 
+  // 🔁 Ma'lumotni birinchi yuklash
   useEffect(() => {
+    setLoading(false);
     fetchRegistrations();
   }, [orderSearch, statusFilter, page]);
+
+  // 🔔 Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime:registrations")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "registrations",
+        },
+        (payload) => {
+          console.log("Yangi yozuv qo‘shildi:", payload.new);
+          // Yangi yozuv qo‘shilganda ro'yxatni qayta yuklaymiz
+          fetchRegistrations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // const handlePayment = async (registration) => {
+  //   const remaining =
+  //     Number(registration.total_amount) - Number(registration.paid || 0);
+
+  //   if (
+  //     payAmount <= 0 ||
+  //     payAmount > remaining ||
+  //     (paymentMethod !== "cash" && paymentMethod !== "card")
+  //   )
+  //     return;
+
+  //   setProcessing(true);
+
+  //   const prevPaid = Number(registration.paid || 0);
+  //   const prevCash = Number(registration.cash || 0); // bu yer muhim
+  //   const prevCard = Number(registration.card || 0);
+
+  //   const newPaid = prevPaid + payAmount;
+  //   const newStatus =
+  //     newPaid >= Number(registration.total_amount)
+  //       ? "has_been_paid"
+  //       : "partially_paid";
+
+  //   const newCash = paymentMethod === "cash" ? prevCash + payAmount : prevCash;
+  //   const newCard = paymentMethod === "card" ? prevCard + payAmount : prevCard;
+
+  //   const { error } = await supabase
+  //     .from("registrations")
+  //     .update({
+  //       paid: newPaid,
+  //       status: newStatus,
+  //       cash: newCash,
+  //       card: newCard,
+  //       payment_method: paymentMethod,
+  //     })
+  //     .eq("id", registration.id);
+
+  //   setProcessing(false);
+  //   setPayAmount(0);
+  //   setPaymentMethod("");
+
+  //   if (!error) {
+  //     setOpenSheetId(null); // Sheet yopiladi
+  //     fetchRegistrations(); // Yangi ma'lumotlar olinadi
+  //   }
+  // };
 
   const handlePayment = async (registration) => {
     const remaining =
       Number(registration.total_amount) - Number(registration.paid || 0);
 
-    if (payAmount <= 0 || payAmount > remaining) return;
+    if (
+      payAmount <= 0 ||
+      payAmount > remaining ||
+      (paymentMethod !== "cash" && paymentMethod !== "card")
+    )
+      return;
 
     setProcessing(true);
 
-    const newPaid = Number(registration.paid || 0) + payAmount;
-    const newStatus =
-      newPaid >= Number(registration.total_amount)
-        ? "has_been_paid"
-        : "partially_paid";
+    const prevPaid = Number(registration.paid || 0);
+    const newPaid = prevPaid + payAmount;
 
-    await supabase
+    const updateData = {
+      paid: newPaid,
+      status:
+        newPaid >= Number(registration.total_amount)
+          ? "has_been_paid"
+          : "partially_paid",
+      payment_method: paymentMethod,
+    };
+
+    if (paymentMethod === "cash") {
+      updateData.cash = Number(registration.cash || 0) + payAmount;
+    } else if (paymentMethod === "card") {
+      updateData.card = Number(registration.card || 0) + payAmount;
+    }
+
+    const { error } = await supabase
       .from("registrations")
-      .update({ paid: newPaid.toString(), status: newStatus })
+      .update(updateData)
       .eq("id", registration.id);
 
     setProcessing(false);
-    setOpenSheetId(null);
     setPayAmount(0);
-    fetchRegistrations();
-  };
+    setPaymentMethod("");
 
-  const handleRefund = async (registration) => {
-    if (refundAmount <= 0 || refundAmount > registration.paid) return;
-
-    const newPaid = Number(registration.paid || 0) - refundAmount;
-
-    await supabase
-      .from("registrations")
-      .update({ paid: newPaid.toString(), status: "refund" })
-      .eq("id", registration.id);
-
-    setOpenSheetId(null);
-    setRefundAmount(0);
-    fetchRegistrations();
+    if (!error) {
+      setOpenSheetId(null); // Sheet yopilsin
+      fetchRegistrations(); // Yangilansin
+    }
   };
 
   const totalPages = Math.ceil(totalCount / perPage);
@@ -174,6 +255,7 @@ export default function CashierPage() {
         <CostSheet />
         <div className="ml-auto font-medium">Bemorlar soni {totalCount}</div>
       </div>
+      
 
       <Table className="relative">
         <TableHeader className="sticky left-0 top-0">
@@ -183,7 +265,7 @@ export default function CashierPage() {
             <TableCell>Shifokor</TableCell>
             <TableCell>Jami</TableCell>
             <TableCell>Chegirma</TableCell>
-            <TableCell>Tulangan</TableCell>
+            <TableCell>To'langan</TableCell>
             <TableCell className="w-[150px]">Status</TableCell>
             <TableCell>Sana</TableCell>
             <TableCell className="w-[60px]">Amallar</TableCell>
@@ -254,14 +336,20 @@ export default function CashierPage() {
                   <TableCell>
                     {new Date(reg.created_at).toLocaleString()}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={"flex items-center gap-2"}>
                     <Button
-                      className={"w-full"}
+                      className={"w-[40px] h-[40px] border-2 rounded-xl"}
                       variant="outline"
                       onClick={() => setOpenSheetId(reg.id)}
                     >
-                      <BanknoteArrowDown /> / <BanknoteArrowUp />
+                      <PanelRightOpen />
                     </Button>
+                    <CancelPatientDialog
+                      fetchRegistrations={fetchRegistrations}
+                      setOpenSheetId={setOpenSheetId}
+                      reg={reg}
+                    />
+
                     <Sheet
                       open={openSheetId === reg.id}
                       onOpenChange={() => setOpenSheetId(null)}
@@ -269,13 +357,16 @@ export default function CashierPage() {
                       <SheetContent>
                         <SheetHeader>
                           <SheetTitle>To'lov yoki qaytarish</SheetTitle>
-                          <div className="mt-4 space-y-2">
+                          <div className="mt-4 text-sm">
+                            <p className="flex items-center justify-between border-b p-2">
+                              <span>Bemor ID:</span> {reg.order_number}
+                            </p>
                             <p className="flex items-center justify-between border-b p-2">
                               <span>Jami to'lov:</span>{" "}
                               {reg.total_amount?.toLocaleString()} so'm
                             </p>
                             <p className="flex items-center justify-between border-b p-2">
-                              <span>Tulangan: </span>
+                              <span>To'langan: </span>
                               {Number(reg.paid)?.toLocaleString() || 0} so'm
                             </p>
                             <p className="flex items-center justify-between border-b p-2">
@@ -292,6 +383,31 @@ export default function CashierPage() {
                                   Qabul qilish{" "}
                                   <BanknoteArrowDown color="green" />
                                 </h1>
+                                <p>To'lov turi</p>
+                                <Select
+                                  value={paymentMethod}
+                                  onValueChange={setPaymentMethod}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="To'lov turini tanlang" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem
+                                      value="cash"
+                                      className={"hover:bg-muted"}
+                                    >
+                                      Naqd
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="card"
+                                      className={"hover:bg-muted"}
+                                    >
+                                      Plastik
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <p>To'lov miqdori</p>
+
                                 <Input
                                   type="number"
                                   placeholder="Qancha to'lov qabul qilinmoqda"
@@ -325,40 +441,6 @@ export default function CashierPage() {
                               </div>
                             ) : (
                               ""
-                            )}
-
-                            {reg.paid > 0 && (
-                              <div className="space-y-2">
-                                <h1 className="flex gap-3 items-center">
-                                  Qaytarish <BanknoteArrowUp color="red" />
-                                </h1>
-                                <Input
-                                  type="number"
-                                  placeholder="Qancha qaytarilmoqda"
-                                  className={
-                                    refundAmount > reg.paid
-                                      ? "border-red-500 "
-                                      : ""
-                                  }
-                                  value={refundAmount || ""}
-                                  onChange={(e) =>
-                                    setRefundAmount(
-                                      e.target.value === ""
-                                        ? 0
-                                        : parseInt(e.target.value)
-                                    )
-                                  }
-                                />
-                                <Button
-                                  disabled={
-                                    refundAmount <= 0 || refundAmount > reg.paid
-                                  }
-                                  onClick={() => handleRefund(reg)}
-                                  className="w-full"
-                                >
-                                  To'lovni qaytarish
-                                </Button>
-                              </div>
                             )}
                           </div>
                         </SheetHeader>

@@ -22,7 +22,15 @@ export default function Navbar() {
               <Image src={"/logo.png"} alt="" fill className="object-contain" />
             </Link>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            <div className="space-y-0.5">
+              <h1 className="w-[200px] flex items-center justify-end -mb-0.5">
+                {employee.fio}
+              </h1>
+              <p className="w-[200px] font-medium text-[#858181] text-sm flex items-center justify-end">
+                {employee.department}
+              </p>
+            </div>
             <AvatarNavbar user={user} employee={employee} />
             <ModeToggle />
           </div>

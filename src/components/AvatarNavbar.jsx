@@ -1,4 +1,11 @@
-import { LogOutIcon, PanelsTopLeft, UserRoundCog, Wallet } from "lucide-react";
+import {
+  FileText,
+  LayoutTemplate,
+  LogOutIcon,
+  PanelsTopLeft,
+  UserRoundCog,
+  Wallet,
+} from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,16 +51,35 @@ export default function AvatarNavbar({ user, employee }) {
               <span>Asosiy sahifa</span>
             </Link>
           </DropdownMenuItem>
+          {employee.role === "super_admin" && (
+            <DropdownMenuItem asChild>
+              <Link href="/admin-balance" className="flex items-center">
+                <Wallet size={16} className="opacity-60" aria-hidden="true" />
+                <span>Admin balans</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem asChild>
             <Link href="/balance" className="flex items-center">
               <Wallet size={16} className="opacity-60" aria-hidden="true" />
               <span>Balans</span>
             </Link>
           </DropdownMenuItem>
+
           <DropdownMenuItem asChild>
-            <Link href="/admin-balance" className="flex items-center">
-              <Wallet size={16} className="opacity-60" aria-hidden="true" />
-              <span>Admin balans</span>
+            <Link href="/doctor-bonuses" className="flex items-center">
+              <FileText size={16} className="opacity-60" aria-hidden="true" />
+              <span>Shifokorlar hisoboti</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/analytics" className="flex items-center">
+              <LayoutTemplate
+                size={16}
+                className="opacity-60"
+                aria-hidden="true"
+              />
+              <span>Analitikalar</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>

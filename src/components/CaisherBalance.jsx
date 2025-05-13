@@ -8,12 +8,16 @@ import {
   TrendingDown,
   PiggyBank,
   RefreshCw,
+  CreditCard,
+  Tickets,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 
 export default function BalancePage() {
+  const [cash, setCash] = useState(0);
+  const [card, setCard] = useState(0);
   const [expected, setExpected] = useState(0);
   const [received, setReceived] = useState(0);
   const [expenses, setExpenses] = useState(0);
@@ -32,7 +36,7 @@ export default function BalancePage() {
     // Registrations - total_amount va paid faqat bugungi kundan
     const { data: registrations, error: regError } = await supabase
       .from("registrations")
-      .select("total_amount, paid, created_at")
+      .select("total_amount, paid, created_at, cash, card")
       .gte("created_at", todayString) // Bugungi sana
       .lt("created_at", tomorrowString); // Ertangi sanadan oldingi sana
 
@@ -44,14 +48,22 @@ export default function BalancePage() {
 
     let totalExpected = 0;
     let totalReceived = 0;
+    let totalCash = 0;
+    let totalCard = 0;
 
     registrations.forEach((item) => {
       totalExpected += parseInt(item.total_amount || 0);
       totalReceived += parseInt(item.paid || 0);
+      totalCash += parseInt(item.cash || 0);
+      totalCard += parseInt(item.card || 0);
     });
 
     setExpected(totalExpected);
     setReceived(totalReceived);
+    setCash(totalCash);
+    setCard(totalCard);
+
+    
 
     // Xarajatlar faqat bugungi kundan
     const { data: expensesData, error: expError } = await supabase
@@ -99,6 +111,16 @@ export default function BalancePage() {
       title: "Kassa qoldiq",
       value: balance.toLocaleString("uz-UZ") + " so'm",
       icon: <PiggyBank className="text-yellow-600 w-10 h-10" />,
+    },
+    {
+      title: "Naxt",
+      value: cash.toLocaleString("uz-UZ") + " so'm",
+      icon: <Tickets className="text-yellow-600 w-10 h-10" />,
+    },
+    {
+      title: "Plastik",
+      value: card.toLocaleString("uz-UZ") + " so'm",
+      icon: <CreditCard className="text-blue-600 w-10 h-10" />,
     },
   ];
 

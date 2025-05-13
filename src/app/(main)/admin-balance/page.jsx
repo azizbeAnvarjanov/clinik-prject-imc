@@ -1,5 +1,6 @@
 import AdminBalancePage from "@/components/AdminBalancePage";
 import DoctorReportPage from "@/components/DoctorReportPage";
+import TopServicesAnalytics from "@/components/TopServicesAnalytics";
 import React from "react";
 
 const Admin = () => {
@@ -7,6 +8,7 @@ const Admin = () => {
     <div>
       <AdminBalancePage />
       <DoctorReportPage />
+      <TopServicesAnalytics />
     </div>
   );
 };

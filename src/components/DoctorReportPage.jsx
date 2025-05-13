@@ -10,6 +10,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Button } from "./ui/button";
+import { RefreshCw } from "lucide-react";
 
 export default function DoctorReportPage() {
   const supabase = createClient();
@@ -60,7 +62,8 @@ export default function DoctorReportPage() {
       .from("registrations")
       .select("id, doctor_id, paid, created_at")
       .gte("created_at", fromDate)
-      .lt("created_at", toDate);
+      .lt("created_at", toDate)
+      .in("status", ["has_been_paid", "partially_paid"]);
 
     if (regErr) {
       console.error("Registrations error:", regErr);
@@ -95,7 +98,7 @@ export default function DoctorReportPage() {
   }, [period, selectedDate, selectedMonth, selectedYear]);
 
   return (
-    <div>
+    <div className="pb-10 pt-2">
       <div className="flex flex-wrap items-center gap-4 mb-6">
         <Select onValueChange={(v) => setPeriod(v)} value={period}>
           <SelectTrigger className="w-[150px]">
@@ -176,6 +179,9 @@ export default function DoctorReportPage() {
             </SelectContent>
           </Select>
         )}
+        <Button onClick={fetchReport}>
+          Yangilash <RefreshCw className="ml-2 w-4 h-4" />
+        </Button>
       </div>
 
       <div className="overflow-auto">
@@ -188,7 +194,7 @@ export default function DoctorReportPage() {
                 <th className="border px-4 py-2">№</th>
                 <th className="border px-4 py-2">Ism Familiya</th>
                 <th className="border px-4 py-2">Qabul soni</th>
-                <th className="border px-4 py-2">To‘langan</th>
+                <th className="border px-4 py-2">Tushum</th>
                 <th className="border px-4 py-2">Bonus %</th>
                 <th className="border px-4 py-2">Bonus summa</th>
               </tr>
