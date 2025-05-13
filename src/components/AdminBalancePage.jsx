@@ -174,13 +174,6 @@ export default function AdminBalancePage() {
       icon2: <Wallet className="text-blue-600 w-20 h-20" />,
     },
     {
-      title: "Bekor qilinganlar",
-      count: expectedCount - receivedCount,
-      value: refundSumm.toLocaleString("uz-UZ") + " so'm",
-      icon: <CircleX className="text-red-600 w-10 h-10" />,
-      icon2: <CircleX className="text-red-600 w-20 h-20" />,
-    },
-    {
       title: "Kassadagi pul",
       count: 0,
       value: balance.toLocaleString("uz-UZ") + " so'm",

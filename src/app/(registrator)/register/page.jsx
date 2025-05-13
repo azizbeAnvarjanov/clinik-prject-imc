@@ -547,15 +547,6 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
-          <div>
-            <Label>Umumiy narx (so‘m)</Label>
-            <div className="text-lg font-semibold mt-2">
-              {total?.toLocaleString()} so‘m
-            </div>
-          </div>
-        </div>
-
         <div className="flex gap-2 flex-wrap">
           <Button
             className="bg-[#013ca6] text-white hover:bg-[#013ca6]"
