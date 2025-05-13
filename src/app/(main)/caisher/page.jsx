@@ -76,7 +76,7 @@ export default function CashierPage() {
   const fetchRegistrations = async () => {
     let query = supabase.from("registrations").select(
       `
-      id, order_number, total_amount, discount, paid, status, created_at, cash, card,
+      id, order_number, total_amount, discount, paid, status, created_at, cash, card, refund_description,
       patient:patient_id (first_name, last_name),
       doctor:doctor_id (full_name)
       `,
@@ -402,7 +402,19 @@ export default function CashierPage() {
                               so'm
                             </p>
                             <br />
-                            {reg.status !== "has_been_paid" ? (
+
+                            {reg.status === "refund" && (
+                              <div>
+                                <h1 className="text-gray-500 mb-1 text-xl">
+                                  Qaytarilgan sababi:
+                                </h1>
+                                {reg.refund_description}
+                              </div>
+                            )}
+
+                            {["unpaid", "partially_paid"].includes(
+                              reg.status
+                            ) && (
                               <div className="space-y-2">
                                 <h1 className="flex gap-3 items-center">
                                   Qabul qilish{" "}
@@ -464,8 +476,6 @@ export default function CashierPage() {
                                     : "To'lovni qabul qilish"}
                                 </Button>
                               </div>
-                            ) : (
-                              ""
                             )}
                           </div>
                         </SheetHeader>
