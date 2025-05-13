@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Input } from "./ui/input";
+import BackBTN from "./BackBTN";
 
 export default function AdminBalancePage() {
   const [cash, setCash] = useState(0);
@@ -212,7 +213,10 @@ export default function AdminBalancePage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Balans hisoboti</h1>
+        <div className="flex items-center gap-2">
+          <BackBTN />
+          <h1 className="text-2xl font-bold">Balans hisoboti</h1>
+        </div>
         <Button onClick={fetchData}>
           Yangilash <RefreshCw className="ml-2 w-4 h-4" />
         </Button>
@@ -317,7 +321,6 @@ export default function AdminBalancePage() {
           ))}
         </div>
       )}
-
     </div>
   );
 }

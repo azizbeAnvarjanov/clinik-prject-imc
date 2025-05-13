@@ -29,6 +29,7 @@ import toast from "react-hot-toast";
 import { CopyX, Printer, Search } from "lucide-react";
 import LoaderComponent from "@/components/LoaderComponent";
 import PhoneInput from "@/components/PhoneInput";
+import ServicesPageComponent from "@/components/Services";
 
 export default function RegisterPage() {
   const supabase = createClient();
@@ -39,6 +40,9 @@ export default function RegisterPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [orderNumber, setOrderNumber] = useState(0);
   const [registerDate, setRegisterDate] = useState("");
+  const [dep_id, setDep_id] = useState(null);
+
+  console.log(dep_id);
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -361,6 +365,12 @@ export default function RegisterPage() {
     services
   );
 
+  function getDoctorById(id) {
+    return doctors.find((doctor) => doctor.id === id);
+  }
+
+  const doctor = getDoctorById(formData.doctor_id);
+
   return (
     <div className="flex flex-col lg:flex-row items-start gap-4">
       {loading && (
@@ -602,7 +612,15 @@ export default function RegisterPage() {
           </div>
         </div>
         <div className="flex flex-col px-3 space-y-2">
-          <div className="flex flex-wrap flex-col ">
+          <ServicesPageComponent
+            services={services}
+            searchTerm={searchTerm}
+            loading={loading}
+            selectedServices={selectedServices}
+            handleCheckboxChange={handleCheckboxChange}
+            doctor={doctor}
+          />
+          {/* <div className="flex flex-wrap flex-col ">
             {services
               .filter((s) => s.name.toLowerCase().includes(searchTerm))
               .map((s) => (
@@ -621,7 +639,7 @@ export default function RegisterPage() {
                   </div>
                 </label>
               ))}
-          </div>
+          </div> */}
         </div>
       </div>
       <div id="printableDiv" className="print-area  mx-auto hidden">

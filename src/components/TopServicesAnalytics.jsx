@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { createClient } from "@/utils/supabase/client";
 import { Input } from "./ui/input";
+import BackBTN from "./BackBTN";
 
 const filterOptions = [
   { label: "Kunlik", value: "daily" },
@@ -96,8 +97,11 @@ export default function TopServicesAnalytics() {
   };
 
   return (
-    <div className="py-4 space-y-4 max-w-lg">
-      <h1 className="text-3xl font-medium">Top xizmatlar</h1>
+    <div className=" space-y-4 max-w-lg">
+      <div className="flex items-center gap-3">
+        <BackBTN />
+        <h1 className="text-3xl font-medium">Top xizmatlar</h1>
+      </div>
       <div className="flex items-center gap-4">
         <Select value={filter} onValueChange={(val) => setFilter(val)}>
           <SelectTrigger className="w-[150px]">

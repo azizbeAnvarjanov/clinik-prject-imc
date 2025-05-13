@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "./ui/button";
 import { RefreshCw } from "lucide-react";
+import BackBTN from "./BackBTN";
 
 export default function DoctorReportPage() {
   const supabase = createClient();
@@ -99,7 +100,8 @@ export default function DoctorReportPage() {
 
   return (
     <div className="pb-10 pt-2">
-      <div className="flex flex-wrap items-center gap-4 mb-6">
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        <BackBTN />
         <Select onValueChange={(v) => setPeriod(v)} value={period}>
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="Davrni tanlang" />

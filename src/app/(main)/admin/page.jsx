@@ -72,7 +72,7 @@ export default function AdminPage() {
     }
     if (!error) {
       fetchAll();
-      setNewService({ name: "", price: "", department_id: "" });
+      setNewService({ name: "", price: "", department: "" });
     }
   }
 
@@ -131,7 +131,7 @@ export default function AdminPage() {
                     }
                   />
                   <Select
-                    value={newService.department_id}
+                    value={newService.department}
                     onValueChange={(val) =>
                       setNewService({ ...newService, department: val })
                     }

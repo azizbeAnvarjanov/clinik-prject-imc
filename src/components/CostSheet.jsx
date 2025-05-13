@@ -125,7 +125,11 @@ function CostSheet() {
               </SelectTrigger>
               <SelectContent>
                 {departments.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.id}>
+                  <SelectItem
+                    className={"hover:bg-muted"}
+                    key={dept.id}
+                    value={dept.id}
+                  >
                     {dept.name}
                   </SelectItem>
                 ))}

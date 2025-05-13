@@ -38,6 +38,7 @@ import {
 import CostSheet from "@/components/CostSheet";
 import toast from "react-hot-toast";
 import { CancelPatientDialog } from "@/components/CancelPatientDialog";
+import Link from "next/link";
 
 const statusColors = {
   unpaid: "text-red-500",
@@ -234,7 +235,7 @@ export default function CashierPage() {
   const totalPages = Math.ceil(totalCount / perPage);
 
   return (
-    <div className="">
+    <div className="pb-10">
       <div className="flex flex-wrap gap-2 items-center mb-3 text-sm">
         <Button onClick={fetchRegistrations}>
           Yangilash
@@ -253,9 +254,33 @@ export default function CashierPage() {
           </Button>
         )}
         <CostSheet />
-        <div className="ml-auto font-medium">Bemorlar soni {totalCount}</div>
+        <div className="ml-auto flex items-center gap-3">
+          <Link
+            className="py-1.5 px-3 rounded-md border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 cursor-pointer"
+            href={"/balance"}
+          >
+            Balans
+          </Link>
+          <Link
+            className="py-1.5 px-3 rounded-md border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 cursor-pointer"
+            href={"/doctor-bonuses"}
+          >
+            Shifokorlar hisoboti
+          </Link>
+          <Link
+            className="py-1.5 px-3 rounded-md border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 cursor-pointer"
+            href={"/analytics"}
+          >
+            Analitika
+          </Link>
+          <Link
+            className="py-1.5 px-3 rounded-md border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 cursor-pointer"
+            href={"/expenses"}
+          >
+            Xarajatlar
+          </Link>
+        </div>
       </div>
-      
 
       <Table className="relative">
         <TableHeader className="sticky left-0 top-0">
@@ -478,6 +503,7 @@ export default function CashierPage() {
         >
           <ChevronRight />
         </Button>
+        <div className="ml-auto font-medium">Bemorlar soni {totalCount}</div>
       </div>
     </div>
   );
