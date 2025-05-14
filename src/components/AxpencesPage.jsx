@@ -75,7 +75,7 @@ const AxpencesPage = () => {
 
       const { data, error } = await supabase
         .from("xarajatlar")
-        .select("*, departments(name)")
+        .select("*")
         .gte("created_at", from)
         .lte("created_at", to);
 

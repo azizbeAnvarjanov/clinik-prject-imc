@@ -639,7 +639,8 @@ export default function RegisterPage() {
             <img src={"/logo.png"} alt="" className="object-contain" />
           </div>
           <div className="text-sm font-bold text-center">
-            <p>Tel: 998 88 254 77 75</p>
+            <p>Direkotor: +998 97 812 46 46</p>
+            <p>Call Center: +998 95 120 61 61</p>
             <p>Namangan, Norin, Norinkapa MFY, Mustaqilliq 67-uy</p>
           </div>
         </div>

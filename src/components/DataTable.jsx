@@ -27,6 +27,8 @@ export function DataTable({ columns, data }) {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
+  console.log(data);
+
   return (
     <div>
       <div className="rounded-md border">
@@ -46,13 +48,12 @@ export function DataTable({ columns, data }) {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.map((row) => (
+            {data.map((row, i) => (
               <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                <TableCell>{i + 1}</TableCell>
+                <TableCell>{row.department_id}</TableCell>
+                <TableCell>{row.sum}</TableCell>
+                <TableCell>{row.description}</TableCell>
               </TableRow>
             ))}
           </TableBody>

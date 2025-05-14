@@ -26,6 +26,46 @@ function CostSheet() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
+
+  const bolimlar = [
+    {
+      name: "AXO",
+      id: "001"
+    },
+    {
+      name: "Oshxona",
+      id: "002"
+    },
+    {
+      name: "Labaratoriya",
+      id: "003"
+    },
+    {
+      name: "Ish haqqi",
+      id: "004"
+    },
+    {
+      name: "Elektrik",
+      id: "005"
+    },
+    {
+      name: "Musr",
+      id: "006"
+    },
+    {
+      name: "Kassa",
+      id: "007"
+    },
+    {
+      name: "Registratura",
+      id: "008"
+    },
+    {
+      name: "Boshqa chiqimlar",
+      id: "009"
+    },
+  ];
+
   useEffect(() => {
     const fetchDepartments = async () => {
       const { data, error } = await supabase.from("departments").select("*");
@@ -119,18 +159,15 @@ function CostSheet() {
 
           <div className="space-y-2">
             <Label>Bo‘lim</Label>
+
             <Select onValueChange={setSelectedDept} value={selectedDept}>
               <SelectTrigger>
                 <SelectValue placeholder="Bo‘limni tanlang" />
               </SelectTrigger>
               <SelectContent>
-                {departments.map((dept) => (
-                  <SelectItem
-                    className={"hover:bg-muted"}
-                    key={dept.id}
-                    value={dept.id}
-                  >
-                    {dept.name}
+                {bolimlar.map((item, i) => (
+                  <SelectItem key={i} className={"hover:bg-muted"} value={item.name}>
+                    {item.name}
                   </SelectItem>
                 ))}
               </SelectContent>

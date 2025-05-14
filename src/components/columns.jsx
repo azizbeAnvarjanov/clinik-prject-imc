@@ -7,9 +7,9 @@ export const columns = [
     cell: ({ row }) => new Date(row.original.created_at).toLocaleDateString(),
   },
   {
-    accessorKey: "departments.name",
+    accessorKey: "department_id",
     header: "Bo‘lim",
-    cell: ({ row }) => row.original.departments?.name || "Noma'lum",
+    cell: ({ row }) => row.original.departament_id || "Noma'lum",
   },
   {
     accessorKey: "sum",

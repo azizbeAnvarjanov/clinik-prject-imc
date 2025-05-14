@@ -12,7 +12,6 @@ import {
   CreditCard,
   CircleX,
   OctagonAlert,
-  Building2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
@@ -27,7 +26,7 @@ import {
 import { Input } from "./ui/input";
 import BackBTN from "./BackBTN";
 
-export default function AdminBalancePage() {
+export default function KassaBalan() {
   const [cash, setCash] = useState(0);
   const [card, setCard] = useState(0);
   const [expected, setExpected] = useState(0);
@@ -152,23 +151,8 @@ export default function AdminBalancePage() {
   }, [period, selectedDate, selectedMonth, selectedYear]);
 
   const balance = received - expenses;
-  const foyda = balance - expenses;
-
   const cards = [
-    {
-      title: "Kutilayotgan summa",
-      count: expectedCount,
-      value: expected.toLocaleString("uz-UZ") + " so'm",
-      icon: <Banknote className="text-green-600 w-10 h-10" />,
-      icon2: <Banknote className="text-green-600 w-20 h-20" />,
-    },
-    {
-      title: "Tushum farqi",
-      count: expectedCount - receivedCount,
-      value: refundSumm.toLocaleString("uz-UZ") + " so'm",
-      icon: <OctagonAlert className="text-yellow-600 w-10 h-10" />,
-      icon2: <OctagonAlert className="text-yellow-600 w-20 h-20" />,
-    },
+
     {
       title: "Qabul qilingan summa",
       count: receivedCount,
@@ -203,13 +187,6 @@ export default function AdminBalancePage() {
       value: card.toLocaleString("uz-UZ") + " so'm",
       icon: <CreditCard className="text-blue-600 w-10 h-10" />,
       icon2: <CreditCard className="text-blue-600 w-20 h-20" />,
-    },
-    {
-      title: "Soff foyda",
-      count: 0,
-      value: foyda.toLocaleString("uz-UZ") + " so'm",
-      icon: <Building2 className="text-blue-600 w-10 h-10" />,
-      icon2: <Building2 className="text-blue-600 w-20 h-20" />,
     },
   ];
 
