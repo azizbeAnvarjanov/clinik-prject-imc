@@ -97,11 +97,9 @@ export default function TopServicesAnalytics() {
   };
 
   return (
-    <div className=" space-y-4 max-w-lg">
-      <div className="flex items-center gap-3">
-        <BackBTN />
-        <h1 className="text-3xl font-medium">Top xizmatlar</h1>
-      </div>
+    <div className="space-y-4">
+      <h2 className="text-2xl font-semibold">Xizmatlar analitikasi</h2>
+
       <div className="flex items-center gap-4">
         <Select value={filter} onValueChange={(val) => setFilter(val)}>
           <SelectTrigger className="w-[150px]">
