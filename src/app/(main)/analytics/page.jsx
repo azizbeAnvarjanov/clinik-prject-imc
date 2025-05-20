@@ -1,5 +1,6 @@
 import BackBTN from "@/components/BackBTN";
 import DepartmentExpenseSummary from "@/components/DepartmentExpenseSummary";
+import DistrictAnalytics from "@/components/DistrictAnalytics";
 import GenderAnalytics from "@/components/GenderAnalytics";
 import MonthlyAnalytics from "@/components/MonthlyAnalytics";
 import RegionAnalytics from "@/components/RegionAnalytics";
@@ -17,8 +18,9 @@ const AnalyticsPage = () => {
         <TopServicesAnalytics />
         <div className="space-y-10">
           <RegionAnalytics />
+          <DistrictAnalytics />
           <GenderAnalytics />
-      <DepartmentExpenseSummary />
+          <DepartmentExpenseSummary />
         </div>
       </div>
       <br />

@@ -497,7 +497,6 @@ export default function RegisterPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Namangan">Namangan</SelectItem>
-                  <SelectItem value="Farg'ona">Farg'ona</SelectItem>
                   <SelectItem value="Andijon">Andijon</SelectItem>
                   <SelectItem value="Navoiy">Navoiy</SelectItem>
                   <SelectItem value="Jizzax">Jizzax</SelectItem>
@@ -520,11 +519,11 @@ export default function RegisterPage() {
                   <SelectItem value="Norin">Norin</SelectItem>
                   <SelectItem value="Uchqo'rg'on">Uchqo'rg'on</SelectItem>
                   <SelectItem value="Pop">Pop</SelectItem>
-                  <SelectItem value="Pop">Mingbuloq</SelectItem>
-                  <SelectItem value="Pop">Uychi</SelectItem>
-                  <SelectItem value="Pop">Chortoq</SelectItem>
-                  <SelectItem value="Pop">Chust</SelectItem>
-                  <SelectItem value="Pop">Kosonsoy</SelectItem>
+                  <SelectItem value="Mingbuloq">Mingbuloq</SelectItem>
+                  <SelectItem value="Uychi">Uychi</SelectItem>
+                  <SelectItem value="Chortoq">Chortoq</SelectItem>
+                  <SelectItem value="Chust">Chust</SelectItem>
+                  <SelectItem value="Kosonsoy">Kosonsoy</SelectItem>
                 </SelectContent>
               </Select>
             </div>

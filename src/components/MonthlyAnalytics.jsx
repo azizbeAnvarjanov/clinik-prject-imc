@@ -52,14 +52,10 @@ export default function MonthlyChart() {
     const fetchData = async () => {
       setLoading(true);
 
-      // Registratsiyalar
       const { data: registrations, error: regError } = await supabase
         .from("registrations")
         .select("created_at, paid");
 
-      console.log(registrations);
-
-      // Xarajatlar
       const { data: expenses, error: expError } = await supabase
         .from("xarajatlar")
         .select("created_at, sum");
@@ -70,19 +66,18 @@ export default function MonthlyChart() {
         return;
       }
 
-      // 12 oylik boshlang'ich qiymatlar
       const monthlyStats = Array.from({ length: 12 }, (_, i) => ({
         month: months[i],
         count: 0,
         revenue: 0,
         expense: 0,
+        netProfit: 0,
       }));
 
-      // Ro‘yxatdan o‘tganlar soni va tushum hisoblash
       registrations.forEach((r) => {
         const date = new Date(r.created_at);
         const year = date.getFullYear();
-        const month = date.getMonth(); // 0–11
+        const month = date.getMonth();
 
         if (year.toString() === selectedYear) {
           monthlyStats[month].count++;
@@ -90,7 +85,6 @@ export default function MonthlyChart() {
         }
       });
 
-      // Xarajatlarni hisoblash
       expenses.forEach((e) => {
         const date = new Date(e.created_at);
         const year = date.getFullYear();
@@ -99,6 +93,11 @@ export default function MonthlyChart() {
         if (year.toString() === selectedYear) {
           monthlyStats[month].expense += Number(e.sum || 0);
         }
+      });
+
+      // Soff foyda (net profit) hisoblash
+      monthlyStats.forEach((m) => {
+        m.netProfit = m.revenue - m.expense;
       });
 
       setData(monthlyStats);
@@ -136,10 +135,7 @@ export default function MonthlyChart() {
           >
             <XAxis dataKey="month" angle={-30} textAnchor="end" height={60} />
 
-            {/* YAxis for count (left) */}
             <YAxis yAxisId="left" />
-
-            {/* YAxis for money (right) */}
             <YAxis
               yAxisId="right"
               orientation="right"
@@ -147,15 +143,14 @@ export default function MonthlyChart() {
             />
 
             <Tooltip
-              formatter={(value) =>
+              formatter={(value, name) =>
                 typeof value === "number"
-                  ? value.toLocaleString("uz-UZ") + " so'm"
+                  ? value.toLocaleString("uz-UZ")
                   : value
               }
             />
             <Legend />
 
-            {/* Blue bar for count */}
             <Bar
               yAxisId="left"
               dataKey="count"
@@ -163,23 +158,26 @@ export default function MonthlyChart() {
               name="Bemorlar soni"
               legendType="line"
             />
-
-            {/* Green bar for revenue */}
             <Bar
               legendType="line"
               yAxisId="right"
               dataKey="revenue"
-              fill="#16a34a"
+              fill="#f59e0b"
               name="Tushum (so'm)"
             />
-
-            {/* Red bar for expense */}
             <Bar
               legendType="line"
               yAxisId="right"
               dataKey="expense"
               fill="#dc2626"
               name="Xarajat (so'm)"
+            />
+            <Bar
+              legendType="line"
+              yAxisId="right"
+              dataKey="netProfit"
+              fill="#16a34a" // sariq rang
+              name="Soff foyda (so'm)"
             />
           </BarChart>
         </ResponsiveContainer>

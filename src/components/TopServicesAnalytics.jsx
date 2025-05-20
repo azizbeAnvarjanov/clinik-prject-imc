@@ -135,7 +135,7 @@ export default function TopServicesAnalytics() {
                 }`
           }
           onChange={handleDateChange}
-          className="border rounded px-2 py-1 w-fit"
+          className="border px-2 py-1 w-fit"
         />
       </div>
 
