@@ -109,9 +109,8 @@ export default function RegionAnalytics() {
         <ChartColumnBig color="#155dfc" />
         Regionlar analitikasi
       </h2>
-
+{/* 
       <div className="flex flex-wrap gap-4">
-        {/* Filter turi */}
         <Select
           value={filterType}
           onValueChange={(v) => {
@@ -132,7 +131,6 @@ export default function RegionAnalytics() {
           </SelectContent>
         </Select>
 
-        {/* Yil */}
         {(filterType === "daily" ||
           filterType === "monthly" ||
           filterType === "yearly") && (
@@ -150,7 +148,6 @@ export default function RegionAnalytics() {
           </Select>
         )}
 
-        {/* Oy */}
         {(filterType === "daily" || filterType === "monthly") && (
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
             <SelectTrigger className="w-24">
@@ -166,7 +163,6 @@ export default function RegionAnalytics() {
           </Select>
         )}
 
-        {/* Kun */}
         {filterType === "daily" && (
           <Select value={selectedDay} onValueChange={setSelectedDay}>
             <SelectTrigger className="w-24">
@@ -181,7 +177,7 @@ export default function RegionAnalytics() {
             </SelectContent>
           </Select>
         )}
-      </div>
+      </div> */}
         
       </div>
 

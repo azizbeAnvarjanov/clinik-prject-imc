@@ -111,8 +111,7 @@ export default function GenderAnalytics() {
           Jins bo‘yicha analitika
         </h2>
 
-        <div className="flex flex-wrap gap-4">
-          {/* Filter turi */}
+        {/* <div className="flex flex-wrap gap-4">
           <Select
             value={filterType}
             onValueChange={(v) => {
@@ -179,7 +178,7 @@ export default function GenderAnalytics() {
               </SelectContent>
             </Select>
           )}
-        </div>
+        </div> */}
       </div>
 
       {loading ? (

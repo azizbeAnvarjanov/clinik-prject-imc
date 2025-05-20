@@ -20,9 +20,10 @@ const AnalyticsPage = () => {
           <RegionAnalytics />
           <DistrictAnalytics />
           <GenderAnalytics />
-          <DepartmentExpenseSummary />
         </div>
       </div>
+      <br />
+      <DepartmentExpenseSummary />
       <br />
       <MonthlyAnalytics />
       <br />

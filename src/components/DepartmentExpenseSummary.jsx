@@ -15,16 +15,18 @@ import { AlignHorizontalDistributeCenter } from "lucide-react";
 export default function DepartmentExpenseSummary() {
   const [expenses, setExpenses] = useState([]);
   const [period, setPeriod] = useState("month");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+
   const today = new Date();
 
-  // Supabase'dan ma'lumotlarni olish
   useEffect(() => {
     const fetchExpenses = async () => {
       setLoading(true);
       const { data, error } = await supabase.from("xarajatlar").select("*");
-
       if (error) {
         console.error("Xatolik:", error);
       } else {
@@ -36,26 +38,31 @@ export default function DepartmentExpenseSummary() {
     fetchExpenses();
   }, []);
 
-  // Sana bo‘yicha filtrlash
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {
       const expDate = new Date(expense.created_at);
-      const sameYear = expDate.getFullYear() === today.getFullYear();
-      const sameMonth = expDate.getMonth() === today.getMonth();
-      const sameDay = expDate.getDate() === today.getDate();
+      const year = expDate.getFullYear();
+      const month = expDate.getMonth();
+      const day = expDate.getDate();
 
-      if (period === "day") return sameYear && sameMonth && sameDay;
-      if (period === "month") return sameYear && sameMonth;
-      if (period === "year") return sameYear;
+      if (period === "year") return year === Number(selectedYear);
+      if (period === "month")
+        return (
+          year === Number(selectedYear) && month === Number(selectedMonth)
+        );
+      if (period === "day")
+        return (
+          year === Number(selectedYear) &&
+          month === Number(selectedMonth) &&
+          day === Number(selectedDay)
+        );
 
       return false;
     });
-  }, [expenses, period]);
+  }, [expenses, period, selectedYear, selectedMonth, selectedDay]);
 
-  // Bo‘lim bo‘yicha guruhlash
   const groupedByDepartment = useMemo(() => {
     const result = {};
-
     filteredExpenses.forEach((expense) => {
       const dep = expense.department_id || "Noma'lum";
       if (!result[dep]) {
@@ -63,22 +70,36 @@ export default function DepartmentExpenseSummary() {
       }
       result[dep] += Number(expense.sum) || 0;
     });
-
     return result;
   }, [filteredExpenses]);
 
+  const years = useMemo(() => {
+    const allYears = expenses.map((e) =>
+      new Date(e.created_at).getFullYear()
+    );
+    return Array.from(new Set(allYears)).sort((a, b) => b - a);
+  }, [expenses]);
+
+  const months = [
+    "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
+    "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr",
+  ];
+
+  const daysInMonth = useMemo(() => {
+    return new Date(Number(selectedYear), Number(selectedMonth) + 1, 0).getDate();
+  }, [selectedYear, selectedMonth]);
+
   return (
-    <div className="">
+    <div>
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <AlignHorizontalDistributeCenter color="red" />
           Xarajatlar (bo‘limlar bo‘yicha)
         </h2>
-
-        <div className="mb-4">
-          <Select value={period} onValueChange={(val) => setPeriod(val)}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Davrni tanlang" />
+        <div className="mb-4 flex gap-2">
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Davr" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="day">Kunlik</SelectItem>
@@ -86,10 +107,67 @@ export default function DepartmentExpenseSummary() {
               <SelectItem value="year">Yillik</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* Yil tanlash */}
+          {(period === "year" || period === "month" || period === "day") && (
+            <Select
+              value={String(selectedYear)}
+              onValueChange={(val) => setSelectedYear(Number(val))}
+            >
+              <SelectTrigger className="w-24">
+                <SelectValue placeholder="Yil" />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((year) => (
+                  <SelectItem key={year} value={String(year)}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Oy tanlash */}
+          {(period === "month" || period === "day") && (
+            <Select
+              value={String(selectedMonth)}
+              onValueChange={(val) => setSelectedMonth(Number(val))}
+            >
+              <SelectTrigger className="w-28">
+                <SelectValue placeholder="Oy" />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((m, i) => (
+                  <SelectItem key={i} value={String(i)}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Kun tanlash */}
+          {period === "day" && (
+            <Select
+              value={String(selectedDay)}
+              onValueChange={(val) => setSelectedDay(Number(val))}
+            >
+              <SelectTrigger className="w-24">
+                <SelectValue placeholder="Kun" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: daysInMonth }, (_, i) => (
+                  <SelectItem key={i + 1} value={String(i + 1)}>
+                    {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="">
         {loading ? (
           <p>Yuklanmoqda...</p>
         ) : Object.keys(groupedByDepartment).length === 0 ? (
@@ -98,7 +176,7 @@ export default function DepartmentExpenseSummary() {
           Object.entries(groupedByDepartment).map(([dep, total]) => (
             <div
               key={dep}
-              className="flex justify-between py-2 border-b border-muted"
+              className="flex justify-between p-2 border-b border-muted hover:bg-muted"
             >
               <span className="font-medium">{dep}</span>
               <span>{total.toLocaleString("uz-UZ")} so‘m</span>
