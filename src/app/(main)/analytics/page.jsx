@@ -1,3 +1,4 @@
+import AgeAnalytics from "@/components/AgeAnalytics";
 import BackBTN from "@/components/BackBTN";
 import DepartmentExpenseSummary from "@/components/DepartmentExpenseSummary";
 import DistrictAnalytics from "@/components/DistrictAnalytics";
@@ -20,6 +21,7 @@ const AnalyticsPage = () => {
           <RegionAnalytics />
           <DistrictAnalytics />
           <GenderAnalytics />
+          <AgeAnalytics />
         </div>
       </div>
       <br />

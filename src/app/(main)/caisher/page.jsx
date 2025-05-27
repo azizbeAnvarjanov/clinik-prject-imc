@@ -77,6 +77,7 @@ export default function CashierPage() {
     let query = supabase.from("registrations").select(
       `
       id, order_number, total_amount, discount, paid, status, created_at, cash, card, refund_description,
+      registrations_services:id (*),
       patient:patient_id (first_name, last_name),
       doctor:doctor_id (full_name)
       `,
@@ -139,53 +140,6 @@ export default function CashierPage() {
     };
   }, []);
 
-  // const handlePayment = async (registration) => {
-  //   const remaining =
-  //     Number(registration.total_amount) - Number(registration.paid || 0);
-
-  //   if (
-  //     payAmount <= 0 ||
-  //     payAmount > remaining ||
-  //     (paymentMethod !== "cash" && paymentMethod !== "card")
-  //   )
-  //     return;
-
-  //   setProcessing(true);
-
-  //   const prevPaid = Number(registration.paid || 0);
-  //   const prevCash = Number(registration.cash || 0); // bu yer muhim
-  //   const prevCard = Number(registration.card || 0);
-
-  //   const newPaid = prevPaid + payAmount;
-  //   const newStatus =
-  //     newPaid >= Number(registration.total_amount)
-  //       ? "has_been_paid"
-  //       : "partially_paid";
-
-  //   const newCash = paymentMethod === "cash" ? prevCash + payAmount : prevCash;
-  //   const newCard = paymentMethod === "card" ? prevCard + payAmount : prevCard;
-
-  //   const { error } = await supabase
-  //     .from("registrations")
-  //     .update({
-  //       paid: newPaid,
-  //       status: newStatus,
-  //       cash: newCash,
-  //       card: newCard,
-  //       payment_method: paymentMethod,
-  //     })
-  //     .eq("id", registration.id);
-
-  //   setProcessing(false);
-  //   setPayAmount(0);
-  //   setPaymentMethod("");
-
-  //   if (!error) {
-  //     setOpenSheetId(null); // Sheet yopiladi
-  //     fetchRegistrations(); // Yangi ma'lumotlar olinadi
-  //   }
-  // };
-
   const handlePayment = async (registration) => {
     const remaining =
       Number(registration.total_amount) - Number(registration.paid || 0);
@@ -233,6 +187,8 @@ export default function CashierPage() {
   };
 
   const totalPages = Math.ceil(totalCount / perPage);
+
+  console.log(registrations);
 
   return (
     <div className="pb-10">
@@ -369,11 +325,13 @@ export default function CashierPage() {
                     >
                       <PanelRightOpen />
                     </Button>
-                    <CancelPatientDialog
-                      fetchRegistrations={fetchRegistrations}
-                      setOpenSheetId={setOpenSheetId}
-                      reg={reg}
-                    />
+                    {reg.status !== "refund" && (
+                      <CancelPatientDialog
+                        fetchRegistrations={fetchRegistrations}
+                        setOpenSheetId={setOpenSheetId}
+                        reg={reg}
+                      />
+                    )}
 
                     <Sheet
                       open={openSheetId === reg.id}

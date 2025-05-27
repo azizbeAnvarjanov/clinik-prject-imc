@@ -105,80 +105,10 @@ export default function RegionAnalytics() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-      <h2 className="text-2xl font-semibold flex items-center gap-2">
-        <ChartColumnBig color="#155dfc" />
-        Regionlar analitikasi
-      </h2>
-{/* 
-      <div className="flex flex-wrap gap-4">
-        <Select
-          value={filterType}
-          onValueChange={(v) => {
-            setFilterType(v);
-            setSelectedYear("");
-            setSelectedMonth("");
-            setSelectedDay("");
-          }}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Filtrni tanlang" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="daily">Kunlik</SelectItem>
-            <SelectItem value="monthly">Oylik</SelectItem>
-            <SelectItem value="yearly">Yillik</SelectItem>
-            <SelectItem value="all">Barchasi</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {(filterType === "daily" ||
-          filterType === "monthly" ||
-          filterType === "yearly") && (
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-24">
-              <SelectValue placeholder="Yil" />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map((y) => (
-                <SelectItem key={y} value={y}>
-                  {y}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {(filterType === "daily" || filterType === "monthly") && (
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-24">
-              <SelectValue placeholder="Oy" />
-            </SelectTrigger>
-            <SelectContent>
-              {months.map((m) => (
-                <SelectItem key={m} value={m}>
-                  {m}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {filterType === "daily" && (
-          <Select value={selectedDay} onValueChange={setSelectedDay}>
-            <SelectTrigger className="w-24">
-              <SelectValue placeholder="Kun" />
-            </SelectTrigger>
-            <SelectContent>
-              {days.map((d) => (
-                <SelectItem key={d} value={d}>
-                  {d}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div> */}
-        
+        <h2 className="text-2xl font-semibold flex items-center gap-2">
+          <ChartColumnBig color="#155dfc" />
+          Regionlar analitikasi
+        </h2>
       </div>
 
       {loading ? (
