@@ -553,9 +553,14 @@ export default function RegisterPage() {
           >
             Ro‘yxatdan o‘tkazish
           </Button>
-          <Button disabled={loading} variant="outline" onClick={handleClear}>
+          <Button
+            disabled={loading}
+            variant="outline"
+            onClick={handleClear}
+            className="!border-red-400 text-red-400"
+          >
             <CopyX />
-            Tozalash
+            Сброс
           </Button>
           <Button disabled={loading} variant="outline" onClick={handlePrint}>
             <Printer />

@@ -14,8 +14,6 @@ export default async function PrivatePage() {
 
   return (
     <div>
-      <h1>{employee.department}</h1>
-
       <RegisterPage />
       {/* <DoctorBonusAnalytics /> */}
     </div>
