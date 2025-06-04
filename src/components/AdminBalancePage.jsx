@@ -10,10 +10,10 @@ import {
   RefreshCw,
   Tickets,
   CreditCard,
-  CircleX,
   OctagonAlert,
   Building2,
 } from "lucide-react";
+
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
@@ -152,7 +152,7 @@ export default function AdminBalancePage() {
   }, [period, selectedDate, selectedMonth, selectedYear]);
 
   const balance = received - expenses;
-  const foyda = balance - expenses;
+  const foyda = expected - expenses;
 
   const cards = [
     {

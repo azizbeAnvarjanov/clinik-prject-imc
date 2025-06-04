@@ -154,8 +154,7 @@ function CostSheet() {
       </SheetTrigger>
       <SheetContent side="right" className="w-[400px] p-3">
         <DialogTitle>Yangi xarajat</DialogTitle>
-        <div className="space-y-6 mt-6">
-          <h2 className="text-lg font-bold">Yangi xarajat</h2>
+        <div className="space-y-6">
 
           <div className="space-y-2">
             <Label>Bo‘lim</Label>

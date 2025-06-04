@@ -226,21 +226,29 @@ export default function CashierPage() {
             className="py-1.5 px-3 rounded-md border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 cursor-pointer flex items-center gap-1"
             href={"/doctor-bonuses"}
           >
-            <ChartArea size={16} className="opacity-60" aria-hidden="true"/>
+            <ChartArea size={16} className="opacity-60" aria-hidden="true" />
             Shifokorlar hisoboti
           </Link>
           <Link
             className="py-1.5 px-3 rounded-md border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 cursor-pointer flex items-center gap-1"
             href={"/analytics"}
           >
-            <ChartNoAxesCombined size={16} className="opacity-60" aria-hidden="true"  />
+            <ChartNoAxesCombined
+              size={16}
+              className="opacity-60"
+              aria-hidden="true"
+            />
             Analitika
           </Link>
           <Link
             className="py-1.5 px-3 rounded-md border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 cursor-pointer flex items-center gap-1"
             href={"/expenses"}
           >
-            <ChartCandlestick size={16} className="opacity-60" aria-hidden="true" />
+            <ChartCandlestick
+              size={16}
+              className="opacity-60"
+              aria-hidden="true"
+            />
             Xarajatlar
           </Link>
         </div>
@@ -452,34 +460,43 @@ export default function CashierPage() {
               ))}
         </TableBody>
       </Table>
+      <br />
+      <div className="font-medium text-center">Bemorlar soni {totalCount}</div>
 
-      <div className="flex gap-2 items-center mt-6">
+      <div className="flex gap-2 items-center justify-center mt-3">
         <Button
-          className={"w-[37px] h-[37px]"}
+          className="w-[37px] h-[37px]"
           disabled={page <= 1}
           onClick={() => setPage((p) => p - 1)}
         >
           <ChevronLeft />
         </Button>
+
         <div className="flex gap-2 items-center">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <Button
-              key={i + 1}
-              variant={page === i + 1 ? "default" : "outline"}
-              onClick={() => setPage(i + 1)}
-            >
-              {i + 1}
-            </Button>
-          ))}
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            const startPage = Math.max(1, Math.min(page - 2, totalPages - 4));
+            const pageNumber = startPage + i;
+
+            return (
+              <Button
+                key={pageNumber}
+                className={"w-[37px] h-[37px]"}
+                variant={page === pageNumber ? "default" : "outline"}
+                onClick={() => setPage(pageNumber)}
+              >
+                {pageNumber}
+              </Button>
+            );
+          })}
         </div>
+
         <Button
-          className={"w-[37px] h-[37px]"}
+          className="w-[37px] h-[37px]"
           disabled={page >= totalPages}
           onClick={() => setPage((p) => p + 1)}
         >
           <ChevronRight />
         </Button>
-        <div className="ml-auto font-medium">Bemorlar soni {totalCount}</div>
       </div>
     </div>
   );

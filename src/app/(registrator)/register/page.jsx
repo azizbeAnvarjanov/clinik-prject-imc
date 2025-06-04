@@ -22,7 +22,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import { createClient } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 
@@ -41,8 +40,6 @@ export default function RegisterPage() {
   const [orderNumber, setOrderNumber] = useState(0);
   const [registerDate, setRegisterDate] = useState("");
   const [dep_id, setDep_id] = useState(null);
-
-  console.log(dep_id);
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -651,11 +648,12 @@ export default function RegisterPage() {
         <div className="border-y border-dashed text-sm text-center py-2">
           {registerDate && formatDate(registerDate)}
           <p className="font-bold">
-            {formData.first_name} {formData.last_name}
+            Bemor: {formData.first_name} {formData.last_name}
           </p>
+          <p className="font-bold">Shifokor:{doctor?.full_name}</p>
           <p className="font-bold">ID: {orderNumber}</p>
           <p className="font-bold">Navbat: {navbat + 1}</p>
-          <p className="font-bold">{formData.phone}</p>
+          <p className="font-bold">Telefon raqami: {formData.phone}</p>
         </div>
         <div className="py-2">
           <strong>Chegirma</strong>: {formData.discount}%
