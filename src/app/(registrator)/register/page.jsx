@@ -542,7 +542,6 @@ export default function RegisterPage() {
             </div>
           </div>
         </div>
-        {registerDate}
         <div className="flex gap-2 flex-wrap">
           <Button
             className="bg-[#013ca6] text-white hover:bg-[#013ca6]"
@@ -550,10 +549,7 @@ export default function RegisterPage() {
           >
             Ro‘yxatdan o‘tkazish
           </Button>
-          <Button disabled={loading} variant="outline" onClick={getdate}>
-            <Printer />
-            Sana olish
-          </Button>
+
           <Button disabled={loading} variant="outline" onClick={handlePrint}>
             <Printer />
             Check chiqarish
