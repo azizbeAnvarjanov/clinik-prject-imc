@@ -39,7 +39,6 @@ export default function RegisterPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [orderNumber, setOrderNumber] = useState(0);
   const [registerDate, setRegisterDate] = useState("");
-  const [dep_id, setDep_id] = useState(null);
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -58,6 +57,22 @@ export default function RegisterPage() {
 
   const [total, setTotal] = useState(0);
   const [existingPatient, setExistingPatient] = useState(null);
+
+  const getdate = () => {
+    const now = new Date();
+
+    // Mahalliy vaqt bo'yicha formatlash
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0"); // 0-based month
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
+    const formattedDate = `${year}-${month}-${day}, ${hours}:${minutes}:${seconds}`;
+
+    setRegisterDate(formattedDate);
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -144,6 +159,7 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async () => {
+    getdate();
     if (
       !formData.first_name ||
       !formData.last_name ||
@@ -291,21 +307,6 @@ export default function RegisterPage() {
     setTotal(0);
   };
 
-  const formatDate = (isoString) => {
-    const date = new Date(isoString);
-    const localTimeOffset = date.getTimezoneOffset() * 60000; // Offsetni millisekundga o‘girish
-    const localDate = new Date(date.getTime() - localTimeOffset);
-
-    const year = localDate.getFullYear();
-    const month = String(localDate.getMonth() + 1).padStart(2, "0");
-    const day = String(localDate.getDate()).padStart(2, "0");
-    const hours = String(localDate.getHours()).padStart(2, "0");
-    const minutes = String(localDate.getMinutes()).padStart(2, "0");
-    const seconds = String(localDate.getSeconds()).padStart(2, "0");
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  };
-
   const handlePrint = () => {
     const printContent = document.getElementById("printableDiv");
 
@@ -389,7 +390,6 @@ export default function RegisterPage() {
             <Search />
           </Button>
         </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label>
@@ -542,13 +542,17 @@ export default function RegisterPage() {
             </div>
           </div>
         </div>
-
+        {registerDate}
         <div className="flex gap-2 flex-wrap">
           <Button
             className="bg-[#013ca6] text-white hover:bg-[#013ca6]"
             onClick={handleSubmit}
           >
             Ro‘yxatdan o‘tkazish
+          </Button>
+          <Button disabled={loading} variant="outline" onClick={getdate}>
+            <Printer />
+            Sana olish
           </Button>
           <Button disabled={loading} variant="outline" onClick={handlePrint}>
             <Printer />
@@ -646,17 +650,20 @@ export default function RegisterPage() {
           </div>
         </div>
         <div className="border-y border-dashed text-sm text-center py-2">
-          {registerDate && formatDate(registerDate)}
+          {registerDate && registerDate}
           <p className="font-bold">
             Bemor: {formData.first_name} {formData.last_name}
           </p>
-          <p className="font-bold">Shifokor:{doctor?.full_name}</p>
+          <p className="font-bold mb-1">
+            Bemor tug'ilgan sana: {formData.birth_date}
+          </p>
           <p className="font-bold">ID: {orderNumber}</p>
           <p className="font-bold">Navbat: {navbat + 1}</p>
           <p className="font-bold">Telefon raqami: {formData.phone}</p>
         </div>
         <div className="py-2">
-          <strong>Chegirma</strong>: {formData.discount}%
+          <p className="font-bold mt-1">Shifokor: {doctor?.full_name}</p>
+          <p className="font-bold mt-1">Chegirma:{formData.discount}%</p>
           <div className="flex item-center justify-between font-bold">
             <h1>Xizmatlar</h1>
             <h1>Sum</h1>

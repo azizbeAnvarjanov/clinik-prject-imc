@@ -30,39 +30,39 @@ function CostSheet() {
   const bolimlar = [
     {
       name: "AXO",
-      id: "001"
+      id: "001",
     },
     {
       name: "Oshxona",
-      id: "002"
+      id: "002",
     },
     {
       name: "Labaratoriya",
-      id: "003"
+      id: "003",
     },
     {
       name: "Ish haqqi",
-      id: "004"
+      id: "004",
     },
     {
       name: "Elektrik",
-      id: "005"
+      id: "005",
     },
     {
       name: "Musr",
-      id: "006"
+      id: "006",
     },
     {
       name: "Kassa",
-      id: "007"
+      id: "007",
     },
     {
       name: "Registratura",
-      id: "008"
+      id: "008",
     },
     {
       name: "Boshqa chiqimlar",
-      id: "009"
+      id: "009",
     },
   ];
 
@@ -155,7 +155,6 @@ function CostSheet() {
       <SheetContent side="right" className="w-[400px] p-3">
         <DialogTitle>Yangi xarajat</DialogTitle>
         <div className="space-y-6">
-
           <div className="space-y-2">
             <Label>Bo‘lim</Label>
 
@@ -165,7 +164,11 @@ function CostSheet() {
               </SelectTrigger>
               <SelectContent>
                 {bolimlar.map((item, i) => (
-                  <SelectItem key={i} className={"hover:bg-muted"} value={item.name}>
+                  <SelectItem
+                    key={i}
+                    className={"hover:bg-muted"}
+                    value={item.name}
+                  >
                     {item.name}
                   </SelectItem>
                 ))}
