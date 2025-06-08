@@ -39,6 +39,41 @@ export default function RegisterPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [orderNumber, setOrderNumber] = useState(0);
   const [registerDate, setRegisterDate] = useState("");
+  const [isPrinted, setIsPrinted] = useState(false);
+
+  const regions = {
+    Namangan: [
+      "Norin",
+      "Uchqo'rg'on",
+      "Pop",
+      "Mingbuloq",
+      "Uychi",
+      "Chortoq",
+      "Chust",
+      "Kosonsoy",
+    ],
+    Andijon: [
+      "Asaka",
+      "Baliqchi",
+      "Bo'z",
+      "Jalaquduq",
+      "Izboskan",
+      "Qo'rg'ontepa",
+      "Xonabod",
+      "Shahrixon",
+    ],
+    Fargona: [
+      "Oltiariq",
+      "Bag'dod",
+      "Beshariq",
+      "Buvayda",
+      "Dang'ara",
+      "Farg'ona",
+      "Qo'qon",
+      "Quva",
+      "Rishton",
+    ],
+  };
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -53,6 +88,9 @@ export default function RegisterPage() {
     doctor_id: "",
     discount: 0,
   });
+
+  const districtOptions = formData.region ? regions[formData.region] : [];
+
   const [navbat, setNavbat] = useState(0);
 
   const [total, setTotal] = useState(0);
@@ -286,6 +324,7 @@ export default function RegisterPage() {
 
     setLoading(false);
     toast.success("Muvafaqiyatli ro'yhatdan o'tdi!");
+    setIsPrinted(true);
   };
 
   const handleClear = () => {
@@ -305,6 +344,7 @@ export default function RegisterPage() {
     setSelectedServices([]);
     setExistingPatient(null);
     setTotal(0);
+    setIsPrinted(false);
   };
 
   const handlePrint = () => {
@@ -480,27 +520,34 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          {/* Viloyat va Tuman */}
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Viloyat</Label>
               <Select
                 value={formData.region}
                 onValueChange={(val) =>
-                  setFormData((prev) => ({ ...prev, region: val }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    region: val,
+                    district: "", // viloyat o'zgarsa tuman tozalanadi
+                  }))
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder="Viloyatni tanlang" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Namangan">Namangan</SelectItem>
-                  <SelectItem value="Andijon">Andijon</SelectItem>
-                  <SelectItem value="Navoiy">Navoiy</SelectItem>
-                  <SelectItem value="Jizzax">Jizzax</SelectItem>
-                  <SelectItem value="Toshkent">Toshkent</SelectItem>
+                  {Object.keys(regions).map((region) => (
+                    <SelectItem key={region} value={region}>
+                      {region}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
             <div className="w-full">
               <Label>Tuman</Label>
               <Select
@@ -508,19 +555,17 @@ export default function RegisterPage() {
                 onValueChange={(val) =>
                   setFormData((prev) => ({ ...prev, district: val }))
                 }
+                disabled={!formData.region} // region tanlanmagan bo‘lsa disable
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder="Tuman tanlang" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Norin">Norin</SelectItem>
-                  <SelectItem value="Uchqo'rg'on">Uchqo'rg'on</SelectItem>
-                  <SelectItem value="Pop">Pop</SelectItem>
-                  <SelectItem value="Mingbuloq">Mingbuloq</SelectItem>
-                  <SelectItem value="Uychi">Uychi</SelectItem>
-                  <SelectItem value="Chortoq">Chortoq</SelectItem>
-                  <SelectItem value="Chust">Chust</SelectItem>
-                  <SelectItem value="Kosonsoy">Kosonsoy</SelectItem>
+                  {districtOptions.map((district) => (
+                    <SelectItem key={district} value={district}>
+                      {district}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -543,17 +588,19 @@ export default function RegisterPage() {
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button
-            className="bg-[#013ca6] text-white hover:bg-[#013ca6]"
-            onClick={handleSubmit}
-          >
-            Ro‘yxatdan o‘tkazish
-          </Button>
-
-          <Button disabled={loading} variant="outline" onClick={handlePrint}>
-            <Printer />
-            Check chiqarish
-          </Button>
+          {isPrinted === false ? (
+            <Button
+              className="bg-[#013ca6] text-white hover:bg-[#013ca6]"
+              onClick={handleSubmit}
+            >
+              Ro‘yxatdan o‘tkazish
+            </Button>
+          ) : (
+            <Button disabled={loading} variant="outline" onClick={handlePrint}>
+              <Printer />
+              Check chiqarish
+            </Button>
+          )}
           <Button
             disabled={loading}
             variant="outline"
