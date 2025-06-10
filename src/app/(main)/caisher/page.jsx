@@ -69,6 +69,8 @@ export default function CashierPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentMethod, setPaymentMethod] = useState(""); // "cash" yoki "card"
   const [page, setPage] = useState(1);
+  const [doctorFilter, setDoctorFilter] = useState("");
+  const [doctors, setDoctors] = useState([]);
   const perPage = 11;
   const [totalCount, setTotalCount] = useState(0);
 
@@ -95,6 +97,10 @@ export default function CashierPage() {
       }
     }
 
+    if (doctorFilter) {
+      query = query.eq("doctor_id", doctorFilter);
+    }
+
     if (statusFilter) {
       query = query.eq("status", statusFilter);
     }
@@ -114,11 +120,23 @@ export default function CashierPage() {
     setTotalCount(count || 0);
   };
 
+  const fetchDoctors = async () => {
+    const { data, error } = await supabase.from("doctors").select("*");
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setDoctors(data || []);
+  };
+
   // 🔁 Ma'lumotni birinchi yuklash
   useEffect(() => {
     setLoading(false);
     fetchRegistrations();
-  }, [orderSearch, statusFilter, page]);
+    fetchDoctors();
+  }, [orderSearch, statusFilter, page, doctorFilter]);
 
   // 🔔 Realtime subscription
   useEffect(() => {
@@ -201,15 +219,17 @@ export default function CashierPage() {
           Yangilash
           <RefreshCw />
         </Button>
-        {(orderSearch || statusFilter) && (
+        {(orderSearch || statusFilter || doctorFilter) && (
           <Button
-            size={"sm"}
+            variant={"destructive"}
             onClick={() => {
               setOrderSearch("");
               setStatusFilter("");
+              setDoctorFilter("");
               setPage(1);
             }}
           >
+            <X />
             Filtrni tozalash
           </Button>
         )}
@@ -278,7 +298,24 @@ export default function CashierPage() {
               />
             </TableCell>
             <TableCell></TableCell>
-            <TableCell></TableCell>
+            <TableCell>
+              <Select
+                size={"sm"}
+                value={doctorFilter}
+                onValueChange={(val) => setDoctorFilter(val)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Shifokor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {doctors.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </TableCell>
             <TableCell></TableCell>
             <TableCell></TableCell>
             <TableCell></TableCell>
