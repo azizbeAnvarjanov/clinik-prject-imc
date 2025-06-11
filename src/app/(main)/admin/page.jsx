@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Trash } from "lucide-react";
+import DoctorBonuses from "@/components/DoctorBonuses";
 
 export default function AdminPage() {
   const supabase = createClient();
@@ -96,6 +97,7 @@ export default function AdminPage() {
 
   return (
     <div className="p-4">
+      <DoctorBonuses />
       <Tabs defaultValue="services" className="w-full">
         <TabsList>
           <TabsTrigger value="services">Xizmatlar</TabsTrigger>

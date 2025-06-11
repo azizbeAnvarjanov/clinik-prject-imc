@@ -368,7 +368,9 @@ export default function CashierPage() {
                     {getStatusLabel(reg.status)}
                   </TableCell>
                   <TableCell>
-                    {new Date(reg.created_at).toLocaleString()}
+                    {new Date(reg.created_at).toLocaleString("uz-UZ", {
+                      timeZone: "Asia/Tashkent",
+                    })}
                   </TableCell>
                   <TableCell className={"flex items-center gap-2"}>
                     <Button
