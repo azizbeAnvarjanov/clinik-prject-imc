@@ -70,16 +70,29 @@ export default function AllDoctorsBonusReport() {
     }
 
     const filteredRegs = registrations.filter((reg) => {
-      const date = dayjs(reg.created_at);
-      const isValidDate =
-        (filter === "daily" && date.isSame(today, "day")) ||
-        (filter === "monthly" && date.isSame(today, "month")) ||
-        (filter === "yearly" && date.isSame(today, "year")) ||
-        (filter === "range" &&
-          startDate &&
-          endDate &&
-          date.isSameOrAfter(dayjs(startDate), "day") &&
-          date.isSameOrBefore(dayjs(endDate), "day"));
+      const date = new Date(reg.created_at);
+      const today = new Date();
+
+      let isValidDate = false;
+
+      if (filter === "daily") {
+        isValidDate =
+          date.getFullYear() === today.getFullYear() &&
+          date.getMonth() === today.getMonth() &&
+          date.getDate() === today.getDate();
+      } else if (filter === "monthly") {
+        isValidDate =
+          date.getFullYear() === today.getFullYear() &&
+          date.getMonth() === today.getMonth();
+      } else if (filter === "yearly") {
+        isValidDate = date.getFullYear() === today.getFullYear();
+      } else if (filter === "range" && startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        start.setHours(0, 0, 0, 0); // vaqtni tozalash
+        end.setHours(23, 59, 59, 999); // kun oxirigacha qo‘yish
+        isValidDate = date >= start && date <= end;
+      }
 
       return isValidDate && reg.paid > 0;
     });
