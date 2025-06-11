@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Download } from "lucide-react";
+import BackBTN from "./BackBTN";
 
 export default function AllDoctorsBonusReport() {
   const [report, setReport] = useState([]);
@@ -169,6 +170,10 @@ export default function AllDoctorsBonusReport() {
 
   return (
     <div className="p-4">
+      <div className="flex items-centers gap-2 mb-3">
+        <BackBTN />
+        <h1 className="text-2xl font-bold">Bonuslar</h1>
+      </div>
       <div className="flex gap-4 mb-4 items-center flex-wrap justify-between">
         <div className="flex gap-2">
           {["daily", "monthly", "yearly", "range"].map((key) => (

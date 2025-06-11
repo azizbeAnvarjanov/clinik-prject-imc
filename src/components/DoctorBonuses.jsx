@@ -120,11 +120,7 @@ export default function DoctorBonusesPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-2xl font-semibold mb-4">
-        Shifokorlar uchun xizmat bonus foizlari
-      </h1>
-
+    <div className="p-4">
       <div className="mb-6">
         <label className="block mb-2">Shifokorni tanlang:</label>
         <Select onValueChange={(val) => setSelectedDoctorId(val)}>

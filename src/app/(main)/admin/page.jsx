@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { Trash } from "lucide-react";
 import DoctorBonuses from "@/components/DoctorBonuses";
+import BackBTN from "@/components/BackBTN";
 
 export default function AdminPage() {
   const supabase = createClient();
@@ -97,14 +98,19 @@ export default function AdminPage() {
 
   return (
     <div className="p-4">
+      <div className="flex items-centers gap-2 mb-3">
+        <BackBTN />
+        <h1 className="text-2xl font-bold">
+          Shifokorlar uchun xizmat bonus foizlari
+        </h1>
+      </div>
       <DoctorBonuses />
-      <Tabs defaultValue="services" className="w-full">
+      {/* <Tabs defaultValue="services" className="w-full">
         <TabsList>
           <TabsTrigger value="services">Xizmatlar</TabsTrigger>
           <TabsTrigger value="doctors">Shifokorlar</TabsTrigger>
         </TabsList>
 
-        {/* SERVICES */}
         <TabsContent value="services">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Xizmatlar</h2>
@@ -191,7 +197,6 @@ export default function AdminPage() {
           </div>
         </TabsContent>
 
-        {/* DOCTORS */}
         <TabsContent value="doctors">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Shifokorlar</h2>
@@ -275,7 +280,7 @@ export default function AdminPage() {
             </Table>
           </div>
         </TabsContent>
-      </Tabs>
+      </Tabs> */}
     </div>
   );
 }

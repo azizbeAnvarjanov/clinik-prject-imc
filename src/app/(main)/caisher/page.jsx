@@ -244,7 +244,7 @@ export default function CashierPage() {
           </Link>
           <Link
             className="py-1.5 px-3 rounded-md border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 cursor-pointer flex items-center gap-1"
-            href={"/doctor-bonuses"}
+            href={"/report"}
           >
             <ChartArea size={16} className="opacity-60" aria-hidden="true" />
             Shifokorlar hisoboti
@@ -270,6 +270,12 @@ export default function CashierPage() {
               aria-hidden="true"
             />
             Xarajatlar
+          </Link>
+          <Link
+            className="py-1.5 px-3 rounded-md border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 cursor-pointer flex items-center gap-1"
+            href={"/admin"}
+          >
+            Shifokrolarga bonus qo'shish
           </Link>
         </div>
       </div>
