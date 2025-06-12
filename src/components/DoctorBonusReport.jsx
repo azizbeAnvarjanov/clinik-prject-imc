@@ -109,7 +109,7 @@ export default function AllDoctorsBonusReport() {
 
     const { data: services } = await supabase
       .from("services")
-      .select("id, name")
+      .select("id, name, price")
       .in("id", serviceIds);
 
     const rows = filteredRegs
@@ -119,17 +119,17 @@ export default function AllDoctorsBonusReport() {
         );
 
         return servicesForReg.map((rs) => {
+          const doctor = doctors.find((d) => d.id === rs.doctor_id);
+          const service = services.find((s) => s.id === rs.service_id);
+
           const bonusInfo = bonuses.find(
             (b) =>
               b.doctor_id === rs.doctor_id && b.service_id === rs.service_id
           );
           const bonusPercentage = bonusInfo?.bonus_percentage || 0;
-          const bonusAmount = (reg.paid * bonusPercentage) / 100;
+          const bonusAmount = (service.price * bonusPercentage) / 100;
 
           if (bonusAmount === 0) return null;
-
-          const doctor = doctors.find((d) => d.id === rs.doctor_id);
-          const service = services.find((s) => s.id === rs.service_id);
 
           return {
             doctor_id: rs.doctor_id,
@@ -137,6 +137,7 @@ export default function AllDoctorsBonusReport() {
             registration_id: reg.id,
             order_number: reg.order_number,
             service_name: service?.name || "Noma'lum",
+            service_price: service?.price || 0,
             bonus_percentage: bonusPercentage,
             paid: reg.paid,
             bonus_sum: bonusAmount,
@@ -170,6 +171,7 @@ export default function AllDoctorsBonusReport() {
         Sanasi: d.date,
         "Buyurtma raqami": d.order_number,
         Xizmat: d.service_name,
+        "Xizmat narxi": d.service_price,
         "To‘lov": d.paid,
         "Bonus %": d.bonus_percentage,
         "Bonus (so‘m)": d.bonus_sum,
@@ -182,6 +184,8 @@ export default function AllDoctorsBonusReport() {
 
     XLSX.writeFile(workbook, "bonus_report.xlsx");
   };
+
+  console.log(report);
 
   return (
     <div className="p-4">
@@ -258,7 +262,7 @@ export default function AllDoctorsBonusReport() {
                     <th className="border px-2 py-1">Sanasi</th>
                     <th className="border px-2 py-1">Order #</th>
                     <th className="border px-2 py-1">Xizmat</th>
-                    <th className="border px-2 py-1">To‘lov</th>
+                    <th className="border px-2 py-1">Xizmat narxi</th>
                     <th className="border px-2 py-1">Bonus %</th>
                     <th className="border px-2 py-1">Bonus (so‘m)</th>
                   </tr>
@@ -270,7 +274,7 @@ export default function AllDoctorsBonusReport() {
                       <td className="border px-2 py-1">{d.order_number}</td>
                       <td className="border px-2 py-1">{d.service_name}</td>
                       <td className="border px-2 py-1">
-                        {Number(d.paid).toLocaleString()}
+                        {Number(d.service_price).toLocaleString()}
                       </td>
                       <td className="border px-2 py-1">
                         {d.bonus_percentage}%
