@@ -29,6 +29,8 @@ export default function AllDoctorsBonusReport() {
     fetchReport();
   }, [filter]);
 
+  console.log();
+
   const fetchReport = async () => {
     setLoading(true);
 
@@ -244,8 +246,10 @@ export default function AllDoctorsBonusReport() {
             <details key={i} className="border rounded-lg p-2">
               <summary className="cursor-pointer flex justify-between items-center">
                 <span>{doctor.doctor_name}</span>
-                <span className="font-bold">
-                  Umumiy bonus: {doctor.total_bonus.toLocaleString()} so‘m
+                <span className="">
+                  <p>Qabul soni: {doctor.details.length}</p>
+                  Umumiy bonus summasi: {doctor.total_bonus.toLocaleString()}{" "}
+                  so‘m
                 </span>
               </summary>
               <table className="w-full border-collapse border text-sm mt-2 rounded-lg">
