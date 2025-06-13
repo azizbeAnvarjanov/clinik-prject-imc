@@ -6,13 +6,13 @@ import * as XLSX from "xlsx";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Skeleton } from "./ui/skeleton";
+
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Download } from "lucide-react";
 import BackBTN from "./BackBTN";
 
@@ -246,48 +246,57 @@ export default function AllDoctorsBonusReport() {
             Maʼlumot topilmadi
           </div>
         ) : (
-          report.map((doctor, i) => (
-            <details key={i} className="border rounded-lg p-2">
-              <summary className="cursor-pointer flex justify-between items-center">
-                <span>{doctor.doctor_name}</span>
-                <span className="">
-                  <p>Qabul soni: {doctor.details.length}</p>
-                  Umumiy bonus summasi: {doctor.total_bonus.toLocaleString()}{" "}
-                  so‘m
-                </span>
-              </summary>
-              <table className="w-full border-collapse border text-sm mt-2 rounded-lg">
-                <thead>
-                  <tr>
-                    <th className="border px-2 py-1">Sanasi</th>
-                    <th className="border px-2 py-1">Order #</th>
-                    <th className="border px-2 py-1">Xizmat</th>
-                    <th className="border px-2 py-1">Xizmat narxi</th>
-                    <th className="border px-2 py-1">Bonus %</th>
-                    <th className="border px-2 py-1">Bonus (so‘m)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {doctor.details.map((d, idx) => (
-                    <tr key={idx}>
-                      <td className="border px-2 py-1">{d.date}</td>
-                      <td className="border px-2 py-1">{d.order_number}</td>
-                      <td className="border px-2 py-1">{d.service_name}</td>
-                      <td className="border px-2 py-1">
-                        {Number(d.service_price).toLocaleString()}
-                      </td>
-                      <td className="border px-2 py-1">
-                        {d.bonus_percentage}%
-                      </td>
-                      <td className="border px-2 py-1">
-                        {Number(d.bonus_sum).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </details>
-          ))
+          <Accordion type="multiple" className="w-full">
+            {report.map((doctor, i) => (
+              <AccordionItem
+                value={`item-${i}`}
+                key={i}
+                className="border rounded-lg mb-2"
+              >
+                <AccordionTrigger className="px-4 py-2">
+                  <div className="flex justify-between w-full text-left items-center">
+                    <span>{doctor.doctor_name}</span>
+                    <span className="text-sm text-right">
+                      <p>Qabul soni: {doctor.details.length}</p>
+                      {doctor.total_bonus.toLocaleString()} so‘m
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <table className="w-full border-collapse border text-sm mt-2 rounded-lg">
+                    <thead>
+                      <tr>
+                        <th className="border px-2 py-1">Sanasi</th>
+                        <th className="border px-2 py-1">ID raqami</th>
+                        <th className="border px-2 py-1">Xizmat</th>
+                        <th className="border px-2 py-1">Xizmat narxi</th>
+                        <th className="border px-2 py-1">Bonus foizi</th>
+                        <th className="border px-2 py-1">Bonus (so‘m)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {doctor.details.map((d, idx) => (
+                        <tr key={idx}>
+                          <td className="border px-2 py-1">{d.date}</td>
+                          <td className="border px-2 py-1">{d.order_number}</td>
+                          <td className="border px-2 py-1">{d.service_name}</td>
+                          <td className="border px-2 py-1">
+                            {Number(d.service_price).toLocaleString()}
+                          </td>
+                          <td className="border px-2 py-1">
+                            {d.bonus_percentage}%
+                          </td>
+                          <td className="border px-2 py-1">
+                            {Number(d.bonus_sum).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         )}
       </div>
     </div>
