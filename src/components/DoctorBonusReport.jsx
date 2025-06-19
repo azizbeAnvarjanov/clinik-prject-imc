@@ -36,7 +36,7 @@ export default function AllDoctorsBonusReport() {
 
     const today = dayjs();
     const { data: bonuses } = await supabase
-      .from("doctor_service_bonus")
+      .from("doctor_service_bonus_duplicate")
       .select("doctor_id, service_id, bonus_percentage");
 
     if (!bonuses) {
@@ -46,7 +46,7 @@ export default function AllDoctorsBonusReport() {
     }
 
     const { data: regServices } = await supabase
-      .from("registrations_services")
+      .from("registrations_services_duplicate")
       .select("registration_id, service_id, doctor_id")
       .in(
         "service_id",
@@ -61,7 +61,7 @@ export default function AllDoctorsBonusReport() {
 
     const regIds = regServices.map((rs) => rs.registration_id);
     const { data: registrations } = await supabase
-      .from("registrations")
+      .from("registrations_duplicate")
       .select("id, paid, created_at, order_number")
       .in("id", regIds);
 

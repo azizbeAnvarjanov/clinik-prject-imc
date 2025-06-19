@@ -83,9 +83,9 @@ export default function CashierPage() {
     let query = supabase.from("registrations").select(
       `
       id, order_number, total_amount, discount, paid, status, created_at, cash, card, refund_description,
-      registrations_services:id (*),
-      patient:patient_id (first_name, last_name),
-      doctor:doctor_id (full_name)
+  registrations_services:registrations_services!registrations_services_registration_id_fkey (*),
+  patient:patient_id (first_name, last_name),
+  doctor:doctor_id (full_name)
       `,
       { count: "exact" }
     );
